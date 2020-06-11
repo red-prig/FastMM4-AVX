@@ -8,7 +8,7 @@
 
 ; FastMM4-AVX Copyright (C) 2017 Ritlabs S.R.L. All rights reserved.
 ; https://www.ritlabs.com/
-; AVX1/AVX2/ERMS support is written by Maxim Masiutin <max@ritlabs.com>
+; AVX1/AVX2/ERMS support is written by Maxim Masiutin <maxim.masiutin@gmail.com>
 
 ; FastMM4-AVX is released under a dual license, and you may choose to use it
 ; under either the Mozilla Public License 2.0 (MPL 2.1, available from
