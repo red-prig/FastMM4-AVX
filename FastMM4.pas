@@ -1,4 +1,4 @@
-﻿(*
+(*
 
 FastMM4-AVX (AVX1/AVX2/AVX512/ERMS support for FastMM4)
 
@@ -98,6 +98,9 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
    SwitchToThread() instead of critical sections; If a CPU doesn't have the
    "pause" instrcution or Windows doesn't have the SwitchToThread() API
    function, it will use EnterCriticalSection/LeaveCriticalSection.
+ - removed all non-US-ASCII characters, to avoid using UTF-8 BOM, for
+   better compatibility with very early versions of Delphi (e.g. Delphi 5),
+   thanks to Valts Silaputnins.
 
 Here are the comparison of the Original FastMM4 version 4.992, with default
 options compiled for Win64 by Delphi 10.2 Tokyo (Release with Optimization),
@@ -354,8 +357,8 @@ Acknowledgements (for version 4):
  - Kristofer Skaug for reporting the bug that sometimes causes the leak report
    to be shown, even when all the leaks have been registered as expected leaks.
    Also for some useful enhancement suggestions.
- - Günther Schoch for the "RequireDebuggerPresenceForLeakReporting" option.
- - Jan Schlüter for the "ForceMMX" option.
+ - Guenter Schoch for the "RequireDebuggerPresenceForLeakReporting" option.
+ - Jan Schlueter for the "ForceMMX" option.
  - Hallvard Vassbotn for various good enhancement suggestions.
  - Mark Edington for some good suggestions and bug reports.
  - Paul Ishenin for reporting the compilation error when the NoMessageBoxes
@@ -413,7 +416,7 @@ Acknowledgements (for version 4):
    not work in FullDebugMode.
  - Ionut Muntean for the Romanian translation.
  - Florent Ouchet for the French translation.
- - Marcus Mönnig for the ScanMemoryPoolForCorruptions suggestion and the
+ - Marcus Moennig for the ScanMemoryPoolForCorruptions suggestion and the
    suggestion to have the option to scan the memory pool before every
    operation when in FullDebugMode.
  - Francois Piette for bringing under my attention that
@@ -632,10 +635,10 @@ Change log:
    leaks were registered as expected leaks. (Thanks to Kristofer Skaug.)
  Version 4.29 (30 September 2005):
  - Added the "RequireDebuggerPresenceForLeakReporting" option to only display
-   the leak report if the application is run inside the IDE. (Thanks to Günther
+   the leak report if the application is run inside the IDE. (Thanks to Guenter
    Schoch.)
  - Added the "ForceMMX" option, which when disabled will check the CPU for
-   MMX compatibility before using MMX. (Thanks to Jan Schlüter.)
+   MMX compatibility before using MMX. (Thanks to Jan Schlueter.)
  - Added the module name to the title of error dialogs to more easily identify
    which application caused the error. (Thanks to Kristofer Skaug.)
  - Added an ASCII dump to the "FullDebugMode" memory dumps. (Thanks to Hallvard
@@ -2013,9 +2016,9 @@ const
   UnsignedBit = NativeUInt(1);
 
 
-  {According to the Intel 64 and IA-32 Architectures Software Developers Manual,
+  {According to the Intel 64 and IA-32 Architectures Software Developers Manual,
   p. 3.7.5 (Specifying an Offset) and 3.7.5.1 (Specifying an Offset in 64-Bit Mode):
-  "Scale factor  A value of 2, 4, or 8 that is multiplied by the index value";
+  "Scale factor - A value of 2, 4, or 8 that is multiplied by the index value";
   The value of MaximumCpuScaleFactor is determined by the processor architecture}
   MaximumCpuScaleFactorPowerOf2 = 3;
   MaximumCpuScaleFactor = UnsignedBit shl MaximumCpuScaleFactorPowerOf2;
@@ -2918,7 +2921,7 @@ end;
 function CPUID_Supported: Boolean;
 {$ifdef 32bit} assembler;
 
-{QUOTE from the Intel 64 and IA-32 Architectures Software Developers Manual
+{QUOTE from the Intel 64 and IA-32 Architectures Software Developer's Manual
 
 22.16.1 Using EFLAGS Flags to Distinguish Between 32-Bit IA-32 Processors
 The following bits in the EFLAGS register that can be used to differentiate between the 32-bit IA-32 processors:
@@ -16336,12 +16339,12 @@ const
 {$ifdef EnableAVX}
 
 const
-  {XCR0[2:1] = 11b (XMM state and YMM state are enabled by OS).}
+  {XCR0[2:1] = '11b' (XMM state and YMM state are enabled by OS).}
   CXcrXmmAndYmmMask = (4-1) shl 1;
 
 {$ifdef EnableAVX512}
 const
-  {XCR0[7:5] = 111b (OPMASK state, upper 256-bit of ZMM0-ZMM15 and ZMM16-ZMM31 state are enabled by OS).}
+  {XCR0[7:5] = '111b' (OPMASK state, upper 256-bit of ZMM0-ZMM15 and ZMM16-ZMM31 state are enabled by OS).}
   CXcrZmmMask       = (8-1) shl 5;
 {$endif EnableAVX512}
 
@@ -16516,7 +16519,7 @@ This is because the operating system would not save the registers and the states
 { Here is the Intel algorithm to detext AVX
 { QUOTE from the Intel 64 and IA-32 Architectures Optimization Reference Manual
 1) Detect CPUID.1:ECX.OSXSAVE[bit 27] = 1 (XGETBV enabled for application use1)
-2) Issue XGETBV and verify that XCR0[2:1] = 11b (XMM state and YMM state are enabled by OS).
+2) Issue XGETBV and verify that XCR0[2:1] = '11b' (XMM state and YMM state are enabled by OS).
 3) detect CPUID.1:ECX.AVX[bit 28] = 1 (AVX instructions supported).
 ENDQUOTE}
       if
@@ -16530,7 +16533,7 @@ ENDQUOTE}
 
       {$ifdef EnableAVX}
       if
-         {verify that XCR0[2:1] = 11b (XMM state and YMM state are enabled by OS).}
+         {verify that XCR0[2:1] = '11b' (XMM state and YMM state are enabled by OS).}
          (CpuXCR0 and CXcrXmmAndYmmMask = CXcrXmmAndYmmMask) and
 
          {verify that CPUID.1:ECX.AVX[bit 28] = 1 (AVX instructions supported)}

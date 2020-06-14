@@ -394,7 +394,7 @@ Combine it with the two options below for further fine-tuning.}
   FastMM4 checks whether AVX2 is supported by the CPU, and, if supported, never
   calls AVX1 functions, since calling "vzeroupper" even once in a thread
   significantly slows down all subsequent SSE code, which is not documented:
-  neither in the Intel 64 and IA-32 Architectures Software Developer’s Manual
+  neither in the Intel 64 and IA-32 Architectures Software Developers Manual
   nor in the Intel 64 and IA-32 Architectures Optimization Reference Manual.
 
   The code of AVX1 is grouped separately from the code of AVX2, to not scatter
