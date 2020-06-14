@@ -260,6 +260,8 @@ Usage:
   *The EditBin tool ships with the MS Visual C compiler.
  C++ Builder:
   Refer to the instructions inside FastMM4BCB.cpp.
+
+
 =======
 # FastMM4
 Fast Memory Manager
