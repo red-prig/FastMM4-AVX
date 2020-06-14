@@ -98,6 +98,9 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
    SwitchToThread() instead of critical sections; If a CPU doesn't have the
    "pause" instrcution or Windows doesn't have the SwitchToThread() API
    function, it will use EnterCriticalSection/LeaveCriticalSection.
+ - removed all non-US-ASCII characters, to avoid using UTF-8 BOM, for
+   better compatibility with very early versions of Delphi (e.g. Delphi 5),
+   thanks to Valts Silaputnins.
 
 Here are the comparison of the Original FastMM4 version 4.992, with default
 options compiled for Win64 by Delphi 10.2 Tokyo (Release with Optimization),
