@@ -169,8 +169,10 @@ You can find the program, used to generate the benchmark data,
 at https://github.com/maximmasiutin/FastCodeBenchmark
 
 
-AVX1/AVX2/ERMS support Copyright (C) 2017-2018 Ritlabs S.R.L. All rights reserved.
-https://www.ritlabs.com/
+AVX1/AVX2/ERMS support: 
+ - Copyright (C) 2017-2020 Ritlabs S.R.L. All rights reserved.
+ - Copyright (C) 2020 Maxim Masiutin. All rights reserved.
+
 AVX1/AVX2/ERMS support is written by Maxim Masiutin <maxim.masiutin@gmail.com>
 
 FastMM4-AVX is released under a dual license, and you may choose to use it
