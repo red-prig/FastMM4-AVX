@@ -262,7 +262,6 @@ Usage:
   Refer to the instructions inside FastMM4BCB.cpp.
 
 
-=======
 # FastMM4
 Fast Memory Manager
 ![FastMM-Title.jpg with title only](images/FastMM-Title.jpg "FastMM-Title.jpg with title only")
