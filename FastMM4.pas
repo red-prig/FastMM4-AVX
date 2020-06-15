@@ -104,12 +104,12 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
 
 Here are the comparison of the Original FastMM4 version 4.992, with default
 options compiled for Win64 by Delphi 10.2 Tokyo (Release with Optimization),
-and the current FastMM4-AVX branch. Under some scenarios, the FastMM4-AVX branch
-is more than twice as fast comparing to the Original FastMM4. The tests
-have been run on two different computers: one under Xeon E5-2543v2 with 2 CPU
-sockets, each has 6 physical cores (12 logical threads) - with only 5 physical
-core per socket enabled for the test application. Another test was done under
-an i7-7700K CPU.
+and the current FastMM4-AVX branch ("AVX-br."). Under some multi-threading 
+scenarios, the FastMM4-AVX branch is more than twice as fast comparing to the 
+Original FastMM4. The tests have been run on two different computers: one 
+under Xeon E5-2543v2 with 2 CPU sockets, each has 6 physical cores 
+(12 logical threads) - with only 5 physical core per socket enabled for the 
+test application. Another test was done under an i7-7700K CPU.
 
 Used the "Multi-threaded allocate, use and free" and "NexusDB"
 test cases from the FastCode Challenge Memory Manager test suite,
@@ -164,6 +164,26 @@ Here are some more test results (Compiled by Delphi 10.2 Update 3):
     NexusDB 64 threads  179924  62414  34.69%   83914  42915  51.14%
 
 The above tests (on Xeon E5-2667v4 and i9) have been done on 03-May-2018.
+
+
+Here is the single-threading performance comparison between 
+FastMM5 (FastMM v5.01 dated Jun 12, 2020 and FastMM4-AVX v1.03
+dated Jun 14, 2020). This test is run on Jun 16, 2020, under
+Intel Core i7-1065G7 CPU (base frequency: 1.3 GHz, 4 cores, 8 threads).
+Compiled under Delphi 10.3 Update 3, 64-bit target.
+
+                                             FastMM5  AVX-br.   Ratio
+                                              ------  ------   ------
+    ReallocMem Small (1-555b) benchmark         9285    7013   24.47%
+    ReallocMem Medium (1-4039b) benchmark      12002   10186   15.13%
+    Block downsize                             12463    9474   23.98%
+    VerySmall downsize benchmark               12025   11012    8.42%
+    Address space creep benchmark              14212   10845   23.69%
+    Address space creep (larger blocks)        16237   13629   16.06%
+    Single-threaded reallocate and use         15462   13750   11.07%
+    Single-threaded tiny reallocate and use     9263    7203   22.24%
+    Single-threaded allocate, use and free     14885   14211    4.53%
+
 
 You can find the program, used to generate the benchmark data,
 at https://github.com/maximmasiutin/FastCodeBenchmark
@@ -1065,6 +1085,9 @@ unit FastMM4;
 interface
 
 {$Include FastMM4Options.inc}
+
+{$DEFINE DisableAVX}
+{$UNDEF ASMVersion}
 
 {Compiler version defines}
 {$ifndef fpc}
@@ -16291,6 +16314,7 @@ begin
   end;
   {Has another MM been set, or has the Embarcadero MM been used? If so, this
    file is not the first unit in the uses clause of the project's .dpr file.}
+(*
   if IsMemoryManagerSet then
   begin
     {When using runtime packages, another library may already have installed
@@ -16307,6 +16331,7 @@ begin
 {$endif}
     Exit;
   end;
+*)
 {$ifndef POSIX}
   HeapTotalAllocated := GetHeapStatus.TotalAllocated;
   {$ifdef FPC}
