@@ -52,7 +52,10 @@ section	.text
 	global		Move152AVX512
 	global		Move184AVX512
 	global		Move216AVX512
+	global		Move248AVX512
 	global		Move280AVX512
+	global		Move312AVX512
+	global		Move344AVX512
 	global		MoveX32LpAvx512WithErms
 
 	%use		smartalign
