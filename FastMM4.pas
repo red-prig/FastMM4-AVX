@@ -3249,9 +3249,9 @@ asm
    je   @DidntLock
    jmp	@Finish
 @SwitchToThread:
-   push  rcx
-   call  SwitchToThreadIfSupported
-   pop   rcx
+   push rcx
+   call SwitchToThreadIfSupported
+   pop  rcx
    jmp  @Init
 @Finish:
 {$else}
@@ -3275,9 +3275,9 @@ asm
    je   @DidntLock
    jmp	@Finish
 @SwitchToThread:
-   push  ecx
-   call  SwitchToThreadIfSupported
-   pop   ecx
+   push ecx
+   call SwitchToThreadIfSupported
+   pop  ecx
    jmp  @Init
 @Finish:
 {$endif}
@@ -6068,52 +6068,52 @@ procedure LockMediumBlocks;
 asm
   {Note: This routine is assumed to preserve all registers except eax for 32-bit Asm}
 @MediumBlockLockLoop:
-  mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
+  mov     eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to lock the medium blocks}
-  lock cmpxchg MediumBlocksLocked, ah
-  je @DoneNoContention
+  lock    cmpxchg MediumBlocksLocked, ah
+  je      @DoneNoContention
 {$ifdef NeverSleepOnThreadContention}
   {Pause instruction (improves performance on P4)}
-  db $F3, $90 // pause
+  db      $F3, $90 // pause
   {$ifdef UseSwitchToThread}
-  push ecx
-  push edx
-  call SwitchToThreadIfSupported
-  pop edx
-  pop ecx
+  push    ecx
+  push    edx
+  call    SwitchToThreadIfSupported
+  pop     edx
+  pop     ecx
   {$endif}
   {Try again}
-  jmp @MediumBlockLockLoop
+  jmp     @MediumBlockLockLoop
 {$else NeverSleepOnThreadContention}
   {Couldn't lock the medium blocks - sleep and try again}
-  push ecx
-  push edx
-  push InitialSleepTime
-  call Sleep
-  pop edx
-  pop ecx
+  push    ecx
+  push    edx
+  push    InitialSleepTime
+  call    Sleep
+  pop     edx
+  pop     ecx
   {Try again}
-  mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
+  mov     eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
-  lock cmpxchg MediumBlocksLocked, ah
-  je @DoneWithContention
+  lock    cmpxchg MediumBlocksLocked, ah
+  je      @DoneWithContention
   {Couldn't lock the medium blocks - sleep and try again}
-  push ecx
-  push edx
-  push AdditionalSleepTime
-  call Sleep
-  pop edx
-  pop ecx
+  push    ecx
+  push    edx
+  push    AdditionalSleepTime
+  call    Sleep
+  pop     edx
+  pop     ecx
   {Try again}
-  jmp @MediumBlockLockLoop
+  jmp     @MediumBlockLockLoop
 {$endif NeverSleepOnThreadContention}
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @DoneNoContention:
-  xor eax, eax
-  jmp @Done
+  xor     eax, eax
+  jmp     @Done
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @DoneWithContention:
-  mov eax, 1
+  mov     eax, 1
 @Done:
 end;
 {$endif Use32BitAsmForLockMediumBlocks}
@@ -8612,7 +8612,7 @@ asm
   sub rbx, 2 * Type(TSmallBlockType)
 {$ifdef NeverSleepOnThreadContention}
   {Pause instruction (improves performance on P4)}
-  pause
+  db $F3, $90 // pause
   {$ifdef UseSwitchToThread}
   call SwitchToThreadIfSupported
   {$endif NeverSleepOnThreadContention}
@@ -10161,7 +10161,7 @@ asm
   je @GotLockOnSmallBlockType
 {$ifdef NeverSleepOnThreadContention}
   {Pause instruction (improves performance on P4)}
-  pause
+  db $F3, $90 // pause
   {$ifdef UseSwitchToThread}
   mov rsi, rcx
   call SwitchToThreadIfSupported
