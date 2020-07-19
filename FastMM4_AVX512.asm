@@ -47,6 +47,8 @@
 
 section	.text
 
+	global		Move24AVX512
+	global		Move56AVX512
 	global		Move88AVX512
 	global		Move120AVX512
 	global		Move152AVX512
@@ -61,15 +63,34 @@ section	.text
 	%use		smartalign
 	ALIGNMODE	p6, 32     ;  p6 NOP strategy, and jump over the NOPs only if they're 32B or larger.
 
+	align		16
+Move24AVX512:
+	vmovdqa64	EVEXR128N0, [rcx]
+	mov r8,		[rcx+10h]
+	vmovdqa64	[rdx], EVEXR128N0
+	mov		[rdx+10h], r8
+	vpxord		EVEXR128N0, EVEXR128N0, EVEXR128N0
+	ret
+
+Move56AVX512:
+	vmovdqa64	EVEXR256N0, [rcx+00h]
+	vmovdqa64	EVEXR128N1, [rcx+20h]
+	mov r8, 	[rcx+30h]
+	vmovdqa64	[rdx+00h], EVEXR256N0
+	vmovdqa64 	[rdx+20h], EVEXR128N1
+  	mov		[rdx + 48], r8
+	vpxord		EVEXR256N0, EVEXR256N0, EVEXR256N0
+	vpxord		EVEXR128N1, EVEXR128N1, EVEXR128N1
+  	ret
 
 	align		16
 Move88AVX512:
 	vmovdqu64	EVEXR512N0, [rcx]
 	vmovdqa64	EVEXR128N1, [rcx+40h]
-	mov		rcx, [rcx + 50h]
+	mov		rcx, [rcx+50h]
 	vmovdqu64	[rdx], EVEXR512N0
 	vmovdqa64	[rdx+40h], EVEXR128N1
-	mov 		[rdx + 50h], rcx
+	mov 		[rdx+50h], rcx
 	vpxord		EVEXR512N0,EVEXR512N0,EVEXR512N0
 	vpxord		EVEXR128N1,EVEXR128N1,EVEXR128N1
 	ret
@@ -111,7 +132,7 @@ Move184AVX512:
 	vmovdqa64 	EVEXR256N2, [rcx+80h]
 	vmovdqa64 	EVEXR128N3, [rcx+0A0h]
 	mov 		rcx, [rcx+0B0h]
-	vmovdqu64 	[rdx-00h], EVEXR512N0
+	vmovdqu64 	[rdx+00h], EVEXR512N0
 	vmovdqu64 	[rdx+40h], EVEXR512N1
 	vmovdqa64 	[rdx+80h], EVEXR256N2
 	vmovdqa64 	[rdx+0A0h],EVEXR128N3

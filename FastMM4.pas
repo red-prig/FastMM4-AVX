@@ -4126,6 +4126,8 @@ end;
 {$ifdef unix}
 AVX-512 is not yet implemented for UNIX
 {$else unix}
+procedure Move24AVX512(const ASource; var ADest; ACount: NativeInt); external;
+procedure Move56AVX512(const ASource; var ADest; ACount: NativeInt); external;
 procedure Move88AVX512(const ASource; var ADest; ACount: NativeInt); external;
 procedure Move120AVX512(const ASource; var ADest; ACount: NativeInt); external;
 procedure Move152AVX512(const ASource; var ADest; ACount: NativeInt); external;
@@ -16647,8 +16649,8 @@ ENDQUOTE}
     if (FastMMCpuFeatures and FastMMCpuFeatureAVX512) <> 0 then
     begin
       case SmallBlockTypes[LInd].BlockSize of
-         32*01: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move24AVX2;
-         32*02: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move56AVX2;
+         32*01: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move24AVX512;
+         32*02: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move56AVX512;
          32*03: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move88AVX512;
          32*04: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move120AVX512;
          32*05: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move152AVX512;
