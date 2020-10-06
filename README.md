@@ -29,7 +29,7 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
      from multiple treads in parallel, while in single-treaded use scenario
      there may be no benefit comparing to the initial FastMM4;
    - the number of iterations of "pause"-based spin-wait loops is 5000,
-     before relinquishing to SwitchToThread(),
+     before relinquishing to SwitchToThread();
    - see https://stackoverflow.com/a/44916975/6910868 for more details on the
      implementation of the "pause"-based spin-wait loops;
    - implemented dedicated lock and unlock procedures; before that, locking
@@ -75,7 +75,7 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
      since it slows down subsequent SSE code under Skylake / Kaby Lake;
    - on AVX-512, writing to xmm16-xmm31 registers will not affect the turbo
      clocks, and will not impose AVX-SSE transition penalties; therefore, when we
-     have AVX-512, we now only use x(y/z)mm16-31 registers;
+     have AVX-512, we now only use x(y/z)mm16-31 registers.
 
  - Speed improvements due to code optimization and proper techniques
    - if the CPU supports Enhanced REP MOVSB/STOSB (ERMS), use this feature
@@ -94,7 +94,7 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
      replaced to shl/shr, because Delphi64 compiler doesn't replace such
      multiplications and divisions to shl/shr processor instructions,
      and, according to the Intel Optimization Reference Manual, shl/shr is
-     faster than imul/idiv, at least for some processors;
+     faster than imul/idiv, at least for some processors.
 
  - Safer, cleaner code with striter type adherence and better compatibility
    - names assigned to some constants that used to be "magic constants",
@@ -199,7 +199,6 @@ Here are some more test results (Compiled by Delphi 10.2 Update 3):
 
 The above tests (on Xeon E5-2667v4 and i9) have been done on 03-May-2018.
 
-
 Here is the single-threading performance comparison between 
 FastMM5 (FastMM v5.01 dated Jun 12, 2020 and FastMM4-AVX v1.03
 dated Jun 14, 2020). This test is run on Jun 16, 2020, under
@@ -208,20 +207,18 @@ Compiled under Delphi 10.3 Update 3, 64-bit target.
 
                                              FastMM5  AVX-br.   Ratio
                                               ------  ------   ------
-    ReallocMem Small (1-555b) benchmark         9285    7013   24.47%
-    ReallocMem Medium (1-4039b) benchmark      12002   10186   15.13%
-    Block downsize                             12463    9474   23.98%
-    VerySmall downsize benchmark               12025   11012    8.42%
-    Address space creep benchmark              14212   10845   23.69%
-    Address space creep (larger blocks)        16237   13629   16.06%
-    Single-threaded reallocate and use         15462   13750   11.07%
-    Single-threaded tiny reallocate and use     9263    7203   22.24%
-    Single-threaded allocate, use and free     14885   14211    4.53%
-
+    ReallocMem Small (1-555b) benchmark         9285    7013   75.53%
+    ReallocMem Medium (1-4039b) benchmark      12002   10186   84.87%
+    Block downsize                             12463    9474   76.02%
+    VerySmall downsize benchmark               12025   11012   91.58%
+    Address space creep benchmark              14212   10845   76.31%
+    Address space creep (larger blocks)        16237   13629   83.94%
+    Single-threaded reallocate and use         15462   13750   88.93%
+    Single-threaded tiny reallocate and use     9263    7203   77.76%
+    Single-threaded allocate, use and free     14885   14211   95.47%
 
 You can find the program, used to generate the benchmark data,
 at https://github.com/maximmasiutin/FastCodeBenchmark
-
 
 AVX1/AVX2/AVX512/ERMS support: 
  - Copyright (C) 2017-2020 Ritlabs S.R.L. All rights reserved.
