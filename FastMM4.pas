@@ -1,18 +1,15 @@
 (*
 
-FastMM4-AVX (AVX1/AVX2/AVX512/ERMS support for FastMM4)
+FastMM4-AVX (efficient synchronization and AVX1/AVX2/AVX512/ERMS support for FastMM4)
 
 Version 1.04
 
 This is a fork of the Fast Memory Manager 4.992 by Pierre le Riche
 (see below for the original FastMM4 description)
 
-FastMM4-AVX is used as a memory manager for "The Bat!" email client
-https://www.ritlabs.com/en/products/thebat/
-
 What was added to FastMM4-AVX in comparison to the original FastMM4:
 
- - Efficient synchronization
+ - Efficient synchronization 
    - improved synchronization between the threads; proper synchronization
      techniques are used depending on context and availability, i.e. spin-wait
      loops, SwitchToThread, critical sections, etc.;
