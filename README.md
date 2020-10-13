@@ -20,37 +20,40 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
      according to this technique, the first "test" is done via the normal
      (non-locking) memory load to prevent excessive bus locking on each
      iteration of the the spin-wait loop; if the variable is available upon
-     the non-locking memory load of the first step ("test"), proceed to the
+     the normal memory load of the first step ("test"), proceed to the
      second step ("test-and-set") which is done via the bus-locking atomic
      "xchg" instruction; however this two-steps approach of using "test" before
      "test-and-set" can increase the cost for the un-contended case comparing
      to just single-step "test-and-set", this may explain why the speed benefits
      of the FastMM4-AVX are more pronounced when the memory manager is called
      from multiple treads in parallel, while in single-treaded use scenario
-     there may be no benefit comparing to the initial FastMM4;
+     there may be no benefit comparing to the original FastMM4;
    - the number of iterations of "pause"-based spin-wait loops is 5000,
      before relinquishing to SwitchToThread();
    - see https://stackoverflow.com/a/44916975/6910868 for more details on the
      implementation of the "pause"-based spin-wait loops;
-   - implemented dedicated lock and unlock procedures; before that, locking
-     operations were scattered throughout the code; now the locking function
-     have meaningful names: AcquireLockByte and ReleaseLockByte; the values of the
-     lock byte is now checked for validity when FullDebugMode or DEBUG is
-     defined, to detect cases when the same lock is released twice, and other
-     improper use of the lock bytes;
-   - added compile-time options (SmallBlocksLockedCriticalSection/
-     MediumBlocksLockedCriticalSection/LargeBlocksLockedCriticalSection)
-     that remove spin-wait loops of Sleep(0) or (Sleep(InitialSleepTime)) and
-     Sleep(1) (or Sleep(AdditionalSleepTime)) and replaced them with
-     EnterCriticalSection/LeaveCriticalSection to save valuable CPU cycles
-     wasted by Sleep(0) and to improve speed that was affected each time by
-     at least 1 millisecond by Sleep(1); on the other hand, the CriticalSections
-     are much more CPU-friendly and have definitely lower latency than Sleep(1);
-     besides that, it checks if the CPU supports SSE2 and thus the "pause"
-     instruction, it uses "pause" spin-wait loop for 5000 iterations and then
-     SwitchToThread() instead of critical sections; If a CPU doesn't have the
-     "pause" instrcution or Windows doesn't have the SwitchToThread() API
-     function, it will use EnterCriticalSection/LeaveCriticalSection.
+   - using normal memory store to release a lock:
+     FastMM4-AVX uses normal memory store, i.e. the "mov" instruction, rather
+     then the bus-locking "xchg" instruction to write into the synchronization
+     variable (LockByte) to "release a lock" on a data structure,
+     see https://stackoverflow.com/a/44959764/6910868
+     for discussion on releasing a lock;
+     you man define "InterlockedRelease" to get old behaviour of the original
+     FastMM4.
+   - implemented dedicated lock and unlock procedures that operate with
+     synchronization variables (LockByte);
+     before that, locking operations were scattered throughout the code;
+     now the locking function have meaningful names:
+     AcquireLockByte and ReleaseLockByte;
+     the values of the lock byte is now checked for validity when
+     FullDebugMode or DEBUG is defined, to detect cases when the same lock is
+     released twice, and other improper use of the lock bytes;
+   - added compile-time options "SmallBlocksLockedCriticalSection",
+     "MediumBlocksLockedCriticalSection" and "LargeBlocksLockedCriticalSection"
+     which are set by default (inside the FastMM4Options.inc file) as
+     conditional defines. If you undefine these options, you will get the
+     old locking mechanism of the original FastMM4 based on loops of Sleep() or
+     SwitchToThread().
 
  - AVX, AVX2 or AVX512 instructions for faster memory copy
    - if the CPU supports AVX or AVX2, use the 32-byte YMM registers

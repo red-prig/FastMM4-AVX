@@ -20,37 +20,40 @@ What was added to FastMM4-AVX in comparison to the original FastMM4:
      according to this technique, the first "test" is done via the normal
      (non-locking) memory load to prevent excessive bus locking on each
      iteration of the the spin-wait loop; if the variable is available upon
-     the non-locking memory load of the first step ("test"), proceed to the
+     the normal memory load of the first step ("test"), proceed to the
      second step ("test-and-set") which is done via the bus-locking atomic
      "xchg" instruction; however this two-steps approach of using "test" before
      "test-and-set" can increase the cost for the un-contended case comparing
      to just single-step "test-and-set", this may explain why the speed benefits
      of the FastMM4-AVX are more pronounced when the memory manager is called
      from multiple treads in parallel, while in single-treaded use scenario
-     there may be no benefit comparing to the initial FastMM4;
+     there may be no benefit comparing to the original FastMM4;
    - the number of iterations of "pause"-based spin-wait loops is 5000,
      before relinquishing to SwitchToThread();
    - see https://stackoverflow.com/a/44916975/6910868 for more details on the
      implementation of the "pause"-based spin-wait loops;
-   - implemented dedicated lock and unlock procedures; before that, locking
-     operations were scattered throughout the code; now the locking function
-     have meaningful names: AcquireLockByte and ReleaseLockByte; the values of the
-     lock byte is now checked for validity when FullDebugMode or DEBUG is
-     defined, to detect cases when the same lock is released twice, and other
-     improper use of the lock bytes;
-   - added compile-time options (SmallBlocksLockedCriticalSection/
-     MediumBlocksLockedCriticalSection/LargeBlocksLockedCriticalSection)
-     that remove spin-wait loops of Sleep(0) or (Sleep(InitialSleepTime)) and
-     Sleep(1) (or Sleep(AdditionalSleepTime)) and replaced them with
-     EnterCriticalSection/LeaveCriticalSection to save valuable CPU cycles
-     wasted by Sleep(0) and to improve speed that was affected each time by
-     at least 1 millisecond by Sleep(1); on the other hand, the CriticalSections
-     are much more CPU-friendly and have definitely lower latency than Sleep(1);
-     besides that, it checks if the CPU supports SSE2 and thus the "pause"
-     instruction, it uses "pause" spin-wait loop for 5000 iterations and then
-     SwitchToThread() instead of critical sections; If a CPU doesn't have the
-     "pause" instrcution or Windows doesn't have the SwitchToThread() API
-     function, it will use EnterCriticalSection/LeaveCriticalSection.
+   - using normal memory store to release a lock:
+     FastMM4-AVX uses normal memory store, i.e. the "mov" instruction, rather
+     then the bus-locking "xchg" instruction to write into the synchronization
+     variable (LockByte) to "release a lock" on a data structure,
+     see https://stackoverflow.com/a/44959764/6910868
+     for discussion on releasing a lock;
+     you man define "InterlockedRelease" to get old behaviour of the original
+     FastMM4.
+   - implemented dedicated lock and unlock procedures that operate with
+     synchronization variables (LockByte);
+     before that, locking operations were scattered throughout the code;
+     now the locking function have meaningful names:
+     AcquireLockByte and ReleaseLockByte;
+     the values of the lock byte is now checked for validity when
+     FullDebugMode or DEBUG is defined, to detect cases when the same lock is
+     released twice, and other improper use of the lock bytes;
+   - added compile-time options "SmallBlocksLockedCriticalSection",
+     "MediumBlocksLockedCriticalSection" and "LargeBlocksLockedCriticalSection"
+     which are set by default (inside the FastMM4Options.inc file) as
+     conditional defines. If you undefine these options, you will get the
+     old locking mechanism of the original FastMM4 based on loops of Sleep() or
+     SwitchToThread().
 
  - AVX, AVX2 or AVX512 instructions for faster memory copy
    - if the CPU supports AVX or AVX2, use the 32-byte YMM registers
@@ -3188,7 +3191,11 @@ asm
 end;
 {$endif}
 
-{$else SimplifiedInterlockedExchangeByte}
+{$else !SimplifiedInterlockedExchangeByte}
+
+{ The "InterlockedCompareExchangeByte" function is not compiled by default in
+the FastMM4-AVX brach. The implementation below is the old functionality
+of FastMM4 version 4.992. }
 
 {Compare [AAddress], CompareVal:
  If Equal: [AAddress] := NewVal and result = CompareVal
@@ -3209,9 +3216,9 @@ and safer code by cleaning possbile trash}
   movzx eax, al
   movzx edx, dl
 
-{Compare AL with byte ptr [ecx]. If equal, ZF is set and al is
+{Compare AL with byte ptr [ecx]. If equal, ZF is set and DL is
 loaded into byte ptr [ecx]. Else, clear ZF and load byte ptr [ecx] into AL.}
-  lock cmpxchg byte ptr [ecx], dl
+  lock cmpxchg byte ptr [ecx], dl  // cmpxchg also uses AL as an implicit operand
 
 {Clear the registers for safety}
   xor  ecx, ecx
@@ -3231,12 +3238,12 @@ loaded into byte ptr [ecx]. Else, clear ZF and load byte ptr [ecx] into AL.}
   {$endif}
   movzx rax, cl {Remove false dependency on remainig bits of the rax}
   xor rcx, rcx
-  lock cmpxchg byte ptr [r8], dl
+  lock cmpxchg byte ptr [r8], dl  // cmpxchg also uses AL as an implicit operand
   xor rdx, rdx
   xor r8, r8
   {$else unix}
 
-{"System V AMD64 ABI" - the de facto standard among  Unix and Unix-like
+{"System V AMD64 ABI" - the de facto standard among Unix and Unix-like
 operating systems. The first four integer or pointer arguments are passed in
 registers RDI, RSI, RDX, RCX; return value is stored in RAX and RDX }
 
@@ -3246,7 +3253,7 @@ registers RDI, RSI, RDX, RCX; return value is stored in RAX and RDX }
     rdx = AAddress}
 
    movzx rax, dil
-   lock cmpxchg byte ptr [rdx], sil
+   lock cmpxchg byte ptr [rdx], sil  // cmpxchg also uses AL as an implicit operand
    xor rsi, rsi
    xor rdi, rdi
    xor rdx, rdx
@@ -3387,9 +3394,11 @@ begin
   {$endif}
 end;
 
-{Use this option - InterlockedRelease - if you need that releasing the lock
-to also use locked store (lock xchg), not just the normal store (mov)}
-{.$define InterlockedRelease}
+
+{ Look for "using normal memory store" in the comment section
+at the beginning of the file for the discussion on releasing locks on data
+structures. You can also define the "InterlockedRelease" option in the
+FastMM4Options.inc file to get the old behaviour of the origina FastMM4. }
 
 procedure ReleaseLockByte(var Target: Byte);
 
@@ -6062,7 +6071,7 @@ end;
 
 {$ifdef Use32BitAsm}
   {$ifndef MediumBlocksLockedCriticalSection}
-    {$define Use32BitAsmForLockMediumBlocks}
+    {$define UseOriginalFastMM4_LockMediumBlocksAsm}
   {$endif}
 {$endif}
 
@@ -6073,7 +6082,7 @@ end;
 {Locks the medium blocks. Note that the 32-bit assembler version is assumed to
  preserve all registers except eax.}
 
-{$ifndef Use32BitAsmForLockMediumBlocks}
+{$ifndef UseOriginalFastMM4_LockMediumBlocksAsm}
 
 function LockMediumBlocks({$ifdef UseReleaseStack}APointer: Pointer = nil; APDelayRelease: PBoolean = nil{$endif}): Boolean; // returns true if was contention
 
@@ -6138,14 +6147,24 @@ begin
   {$endif MediumBlocksLockedCriticalSection}
   end;
 end;
-{$else Use32BitAsmForLockMediumBlocks}
+
+{$else UseOriginalFastMM4_LockMediumBlocksAsm}
+
+{ This is the original "LockMediumBlocks" assembly implementation that uses a
+loop of Sleep() or SwitchToThread() as opposing to an efficient approach of FastMM4-AVX. }
+
 procedure LockMediumBlocks;
 asm
+{ This implemenation will not be compiled into FastMM4-AVX unless you
+  undefine the MediumBlocksLockedCriticalSection. You may only need
+  this implementation if you would like to use the old locking mechanism of
+  the original FastMM4 }
+
   {Note: This routine is assumed to preserve all registers except eax for 32-bit Asm}
 @MediumBlockLockLoop:
   mov     eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to lock the medium blocks}
-  lock    cmpxchg MediumBlocksLocked, ah
+  lock    cmpxchg MediumBlocksLocked, ah  // cmpxchg also uses AL as an implicit operand
   je      @DoneNoContention
 {$ifdef NeverSleepOnThreadContention}
   {Pause instruction (improves performance on P4)}
@@ -6170,7 +6189,7 @@ asm
   {Try again}
   mov     eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
-  lock    cmpxchg MediumBlocksLocked, ah
+  lock    cmpxchg MediumBlocksLocked, ah  // cmpxchg also uses AL as an implicit operand
   je      @DoneWithContention
   {Couldn't lock the medium blocks - sleep and try again}
   push    ecx
@@ -6191,7 +6210,7 @@ asm
   mov     eax, 1
 @Done:
 end;
-{$endif Use32BitAsmForLockMediumBlocks}
+{$endif UseOriginalFastMM4_LockMediumBlocksAsm}
 
 procedure UnlockMediumBlocks;
   {$ifndef DEBUG}{$ifdef FASTMM4_ALLOW_INLINES}inline;{$endif}{$endif}
@@ -8116,10 +8135,13 @@ like IsMultithreaded or MediumBlocksLocked}
 
 {$else !SmallBlocksLockedCriticalSection}
 
+{ The 32-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
+By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
+
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   mov edx, eax
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah {cmpxchg always also operates with al, implicitly}
+  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
   {Try the next size}
   add ebx, Type(TSmallBlockType)
@@ -8149,7 +8171,7 @@ like IsMultithreaded or MediumBlocksLocked}
   pop  eax {restore existing edx value straight into eax}
   {Try again}
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah
+  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
   {Couldn't grab the block type - sleep and try again}
   push AdditionalSleepTime
@@ -8161,7 +8183,6 @@ like IsMultithreaded or MediumBlocksLocked}
 
 {===== END OF SMALL BLOCK LOCKING CODE; 32-BIT FASTGETMEM =====}
 
-
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @AllocateSmallBlockPool:
   {save additional registers}
@@ -8172,9 +8193,9 @@ like IsMultithreaded or MediumBlocksLocked}
   test ebp, (UnsignedBit shl StateBitMultithreaded)
   jz @MediumBlocksLockedForPool
 {$endif}
-  {$ifndef Use32BitAsmForLockMediumBlocks} push ecx; push edx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} push ecx; push edx {$endif}
   call LockMediumBlocks
-  {$ifndef Use32BitAsmForLockMediumBlocks} pop edx; pop ecx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} pop edx; pop ecx {$endif}
   or ebp, (UnsignedBit shl StateBitMediumLocked)
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @MediumBlocksLockedForPool:
@@ -8326,9 +8347,9 @@ like IsMultithreaded or MediumBlocksLocked}
   test ebp, (UnsignedBit shl StateBitMultithreaded)
   jz @MediumBlocksLocked
 {$endif}
-  {$ifndef Use32BitAsmForLockMediumBlocks} push ecx; push edx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} push ecx; push edx {$endif}
   call LockMediumBlocks
-  {$ifndef Use32BitAsmForLockMediumBlocks} pop edx; pop ecx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} pop edx; pop ecx {$endif}
   or ebp, (UnsignedBit shl StateBitMediumLocked)
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @MediumBlocksLocked:
@@ -8480,9 +8501,9 @@ asm
   {On entry:
     rcx = ASize}
 
-  {Do not put ".noframe" here, for the reasons given explained at the comment
-  at the "BinMediumSequentialFeedRemainder" function at the start of the
-  64-bit BASM code}
+  {Do not put ".noframe" here, for the reasons given at the comment
+  in the "BinMediumSequentialFeedRemainder" function at the start of the
+  64-bit assembler code}
 
   {$ifdef AllowAsmParams}
   .params 2
@@ -8672,10 +8693,13 @@ asm
 
 {$else !SmallBlocksLockedCriticalSection}
 
+{ The 64-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
+By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
+
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   mov edx, eax
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah {cmpxchg also always uses al implicitly}
+  lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
   {Try the next size}
   add rbx, Type(TSmallBlockType)
@@ -9725,7 +9749,7 @@ for flags like IsMultiThreaded or MediumBlocksLocked}
   cmp TSmallBlockType[ebx].SmallBlockTypeLocked, cLockByteLocked
   jne SmallBlockUnlockError
   {$endif}
-  mov TSmallBlockType[ebx].SmallBlockTypeLocked, cLockByteAvailable{todo: XXXXXXXXXXXXXXXXXX}
+  mov TSmallBlockType[ebx].SmallBlockTypeLocked, cLockByteAvailable
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @DontUnlckSmlBlkAftrNotSeqFdPl:
   {Release this pool}
@@ -9794,9 +9818,12 @@ for flags like IsMultiThreaded or MediumBlocksLocked}
 
 {$else !SmallBlocksLockedCriticalSection}
 
+{ The 32-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
+By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
+
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah {cmpxchg also implicitly uses the al register}
+  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
 {$ifdef NeverSleepOnThreadContention}
   {Pause instruction (improves performance on P4)}
@@ -9822,7 +9849,7 @@ for flags like IsMultiThreaded or MediumBlocksLocked}
   {Try again}
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah
+  lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
   {Couldn't grab the block type - sleep and try again}
   push ecx
@@ -9836,6 +9863,8 @@ for flags like IsMultiThreaded or MediumBlocksLocked}
 {$endif}
 
 {$endif !SmallBlocksLockedCriticalSection}
+
+{===== END OF SMALL BLOCK LOCKING CODE; 32-BIT FASTFREEMEM =====}
 
 
   {---------------------Medium blocks------------------------------}
@@ -9870,9 +9899,9 @@ for flags like IsMultiThreaded or MediumBlocksLocked}
   test ebp, (UnsignedBit shl StateBitMultithreaded)
   jz @MediumBlocksLocked
 {$endif}
-  {$ifndef Use32BitAsmForLockMediumBlocks} push ecx; push edx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} push ecx; push edx {$endif}
   call LockMediumBlocks
-  {$ifndef Use32BitAsmForLockMediumBlocks} pop edx; pop ecx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} pop edx; pop ecx {$endif}
   or ebp, (UnsignedBit shl StateBitMediumLocked)
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @MediumBlocksLocked:
@@ -10033,9 +10062,9 @@ end;
 {---------------64-bit BASM FastFreeMem---------------}
 assembler;
 asm
-  {Do not put ".noframe" here, for the reasons given explained at the comment
-  at the "BinMediumSequentialFeedRemainder" function at the start of the
-  64-bit BASM code}
+  {Do not put ".noframe" here, for the reasons given at the comment
+  in the "BinMediumSequentialFeedRemainder" function at the start of the
+  64-bit assembly code}
   {$ifdef AllowAsmParams}
   .params 3
   .pushnv rbx
@@ -10238,9 +10267,12 @@ asm
 
 {$else !SmallBlocksLockedCriticalSection}
 
+{ The 64-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
+By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
+
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah
+  lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
 {$ifdef NeverSleepOnThreadContention}
   {Pause instruction (improves performance on P4)}
@@ -10263,7 +10295,7 @@ asm
   {Try again}
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
-  lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah
+  lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
   je @GotLockOnSmallBlockType
   {Couldn't grab the block type - sleep and try again}
   mov rsi, rcx
@@ -10277,8 +10309,7 @@ asm
 
 {$endif !SmallBlocksLockedCriticalSection}
 
-{===== END OF SMALL BLOCK LOCKING CODE =====}
-
+{===== END OF SMALL BLOCK LOCKING CODE; 64-BIT FASTFREEMEM =====}
 
   {---------------------Medium blocks------------------------------}
   {$ifdef AsmCodeAlign}.align 8{$endif}
@@ -11167,11 +11198,11 @@ asm
   jz @DoMediumInPlaceDownsize
 {$endif}
 //@DoMediumLockForDownsize:
-  {When ussing Use32BitAsmForLockMediumBlocks, it preserves all registers
+  {When ussing UseOriginalFastMM4_LockMediumBlocksAsm, it preserves all registers
   (except eax), including ecx}
-  {$ifndef Use32BitAsmForLockMediumBlocks} push ecx; push edx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} push ecx; push edx {$endif}
   call LockMediumBlocks
-  {$ifndef Use32BitAsmForLockMediumBlocks} pop edx; pop ecx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} pop edx; pop ecx {$endif}
   or byte ptr ss:[esp+cLocalVarStackOfsMediumBlock], (UnsignedBit shl StateBitMediumLocked)
 
   {Reread the flags - they may have changed before medium blocks could be
@@ -11283,9 +11314,9 @@ asm
 {$endif}
 //@DoMediumLockForUpsize:
   {Lock the medium blocks (ecx and edx *must* be preserved}
-  {$ifndef Use32BitAsmForLockMediumBlocks} push ecx; push edx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} push ecx; push edx {$endif}
   call LockMediumBlocks
-  {$ifndef Use32BitAsmForLockMediumBlocks} pop edx; pop ecx {$endif}
+  {$ifndef UseOriginalFastMM4_LockMediumBlocksAsm} pop edx; pop ecx {$endif}
   or byte ptr ss:[esp+cLocalVarStackOfsMediumBlock], (UnsignedBit shl StateBitMediumLocked)
   {Re-read the info for this block (since it may have changed before the medium
    blocks could be locked)}
@@ -11486,9 +11517,9 @@ end;
 {-----------------64-bit BASM FastReallocMem-----------------}
 assembler;
 asm
-  {Do not put ".noframe" here, for the reasons given explained at the comment
-  at the "BinMediumSequentialFeedRemainder" function at the start of the
-  64-bit BASM code}
+  {Do not put ".noframe" here, for the reasons given at the comment
+  in the "BinMediumSequentialFeedRemainder" function at the start of the
+  64-bit assembler code}
   {$ifdef AllowAsmParams}
   .params 3
   .pushnv rbx
@@ -12443,7 +12474,7 @@ asm
     eax = CompareVal,
     edx = NewVal,
     ecx = AAddress}
-    lock cmpxchg [ecx], edx
+    lock cmpxchg [ecx], edx  // cmpxchg also uses EAX as an implicit operand
     xor edx, edx {Clear the edx and ecx value on exit just for safety}
     xor ecx, ecx
 {$else}
@@ -12452,9 +12483,9 @@ asm
     ecx = CompareVal,
     edx = NewVal,
     r8 = AAddress}
-    mov eax, ecx // higher bits 63-32 are automatically cleared
+    mov eax, ecx  // higher bits (63-32) are automatically cleared
     xor ecx, ecx {Clear the ecx value on entry just for safety, after we had save the value to eax}
-    lock cmpxchg [r8], edx
+    lock cmpxchg [r8], edx  // cmpxchg also uses EAX as an implicit operand
     xor edx, edx
     xor r8, r8
 {$endif}
