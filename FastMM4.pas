@@ -199,11 +199,15 @@ Here are some more test results (Compiled by Delphi 10.2 Update 3):
 
 The above tests (on Xeon E5-2667v4 and i9) have been done on 03-May-2018.
 
-Here is the single-threading performance comparison between 
-FastMM5 (FastMM v5.01 dated Jun 12, 2020 and FastMM4-AVX v1.03
-dated Jun 14, 2020). This test is run on Jun 16, 2020, under
+Here is the single-threading performance comparison in some selected
+scenarois between FastMM v5.01 dated Jun 12, 2020 and FastMM4-AVX v1.03
+dated Jun 14, 2020. FastMM4-AVX is compiled without assembly inlines
+and without AVX instructions. This test is run on Jun 16, 2020, under
 Intel Core i7-1065G7 CPU (base frequency: 1.3 GHz, 4 cores, 8 threads).
-Compiled under Delphi 10.3 Update 3, 64-bit target.
+Compiled under Delphi 10.3 Update 3, 64-bit target. Please note that
+these are the selected scenarios where FastMM4-AVX is faster then 
+FastMM5. In other scenarios, especially in multi-threaded with heavy
+contention, FastMM5 is faster.
 
                                              FastMM5  AVX-br.   Ratio
                                               ------  ------   ------
@@ -1120,9 +1124,6 @@ unit FastMM4;
 interface
 
 {$Include FastMM4Options.inc}
-
-{$DEFINE DisableAVX}
-{$UNDEF ASMVersion}
 
 {Compiler version defines}
 {$ifndef fpc}
@@ -16398,7 +16399,7 @@ begin
   end;
   {Has another MM been set, or has the Embarcadero MM been used? If so, this
    file is not the first unit in the uses clause of the project's .dpr file.}
-(*
+
   if IsMemoryManagerSet then
   begin
     {When using runtime packages, another library may already have installed
@@ -16415,7 +16416,7 @@ begin
 {$endif}
     Exit;
   end;
-*)
+
 {$ifndef POSIX}
   HeapTotalAllocated := GetHeapStatus.TotalAllocated;
   {$ifdef FPC}
