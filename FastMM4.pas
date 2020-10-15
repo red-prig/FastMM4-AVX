@@ -1742,7 +1742,7 @@ var
 {$ifndef FullDebugMode}
 {The standard memory manager functions}
 function FastGetMem(ASize: {$ifdef XE2AndUp}NativeInt{$else}{$ifdef fpc}NativeUInt{$else}Integer{$endif}{$endif}): Pointer;
-function FastFreeMem(APointer: Pointer): {$ifdef fpc}{$IFDEF CPU64}PtrUInt{$ELSE}NativeUInt{$ENDIF}{$else}Integer{$endif};
+function FastFreeMem(APointer: Pointer): {$ifdef fpc}{$ifdef CPU64}PtrUInt{$else}NativeUInt{$endif}{$else}Integer{$endif};
 function FastReallocMem({$ifdef fpc}var {$endif}APointer: Pointer; ANewSize: {$ifdef XE2AndUp}NativeInt{$else}{$ifdef fpc}NativeUInt{$else}Integer{$endif}{$endif}): Pointer;
 function FastAllocMem(ASize: {$ifdef XE2AndUp}NativeInt{$else}{$ifdef fpc}NativeUInt{$else}Cardinal{$endif}{$endif}): Pointer;
 {$else}
@@ -3281,6 +3281,12 @@ begin
   sched_yield;
 end;
 {$else}
+{$ifdef FPC}
+procedure SwitchToThreadIfSupported;
+begin
+  ThreadSwitch;
+end;
+{$else}
 type
   TSwitchToThread = function: BOOL; stdcall;
 var
@@ -3293,7 +3299,7 @@ begin
     FSwitchToThread;
   end;
 end;
-
+{$endif}
 {$endif}
 
 
@@ -3503,7 +3509,8 @@ const
 var
   LUnknown: array[0..Length(CUnknown)-1] of AnsiChar = CUnknown;
 begin
-  Result := Min(BufLen, Length(CUnknown));
+  Result := Length(CUnknown);
+  if Result > BufLen then Result := BufLen;
   StrLCopy(Buffer, @LUnknown, Result);
 end;
 
@@ -4216,9 +4223,9 @@ procedure Move248AVX512(const ASource; var ADest; ACount: NativeInt); external;
 procedure Move280AVX512(const ASource; var ADest; ACount: NativeInt); external;
 procedure Move312AVX512(const ASource; var ADest; ACount: NativeInt); external;
 procedure Move344AVX512(const ASource; var ADest; ACount: NativeInt); external;
-{$IFNDEF DisableMoveX32LpAvx512}
+{$ifndef DisableMoveX32LpAvx512}
 procedure MoveX32LpAvx512WithErms(const ASource; var ADest; ACount: NativeInt); external;
-{$ENDIF}
+{$endif}
 
 { FastMM4_AVX512.obj file is needed to enable AVX-512 code for FastMM4-AVX.
   Use "nasm.exe -Ox -f win64 FastMM4_AVX512.asm" to compile this .obj file.
@@ -9324,7 +9331,7 @@ end;
 {$endif ASMVersion}
 
 {Replacement for SysFreeMem}
-function FastFreeMem(APointer: Pointer): {$ifdef fpc}{$IFDEF CPU64}PtrUInt{$ELSE}NativeUInt{$ENDIF}{$else}Integer{$endif};
+function FastFreeMem(APointer: Pointer): {$ifdef fpc}{$ifdef CPU64}PtrUInt{$else}NativeUInt{$endif}{$else}Integer{$endif};
 {$ifndef ASMVersion}
 const
   CFastFreeMemReturnValueError = {$ifdef fpc}NativeUInt(-1){$else}-1{$endif};
@@ -16532,7 +16539,9 @@ var
 {$endif}
 begin
 
+{$ifndef POSIX}
   FSwitchToThread := GetProcAddress(GetModuleHandle(Kernel32), 'SwitchToThread');
+{$endif}
 
 {$ifdef FullDebugMode}
   {$ifdef LoadDebugDLLDynamically}
@@ -16638,7 +16647,10 @@ This is because the operating system would not save the registers and the states
         instruction supported, we don't have to check for XState/CR0 for PAUSE,
         because PAUSE and other instructions like PREFETCHh, MOVNTI, etc.
         work regardless of the CR0 values}
+
+        {$ifndef POSIX}
         if Assigned(FSwitchToThread) then
+        {$endif}
         begin
           FastMMCpuFeatures := FastMMCpuFeatures or FastMMCpuFeaturePauseAndSwitch;
         end;
@@ -16737,7 +16749,7 @@ ENDQUOTE}
   begin
     for LInd := Low(SmallBlockCriticalSections) to High(SmallBlockCriticalSections) do
     begin
-      InitializeCriticalSection(SmallBlockCriticalSections[LInd]);
+      {$ifdef fpc}InitCriticalSection{$else}InitializeCriticalSection{$endif}(SmallBlockCriticalSections[LInd]);
     end;
   end;
   {$endif}
@@ -16942,7 +16954,7 @@ ENDQUOTE}
 
   MediumBlocksLocked := CLockByteAvailable;
   {$ifdef MediumBlocksLockedCriticalSection}
-  InitializeCriticalSection(MediumBlocksLockedCS);
+  {$ifdef fpc}InitCriticalSection{$else}InitializeCriticalSection{$endif}(MediumBlocksLockedCS);
   {$endif}
 
 {$ifdef CheckHeapForCorruption}
@@ -16971,7 +16983,7 @@ ENDQUOTE}
   {------------------Set up the large blocks---------------------}
   LargeBlocksLocked := CLockByteAvailable;
   {$ifdef LargeBlocksLockedCriticalSection}
-  InitializeCriticalSection(LargeBlocksLockedCS);
+  {$ifdef fpc}InitCriticalSection{$else}InitializeCriticalSection{$endif}(LargeBlocksLockedCS);
   {$endif}
   LargeBlocksCircularList.PreviousLargeBlockHeader := @LargeBlocksCircularList;
   LargeBlocksCircularList.NextLargeBlockHeader := @LargeBlocksCircularList;
@@ -17436,12 +17448,12 @@ begin
 
   {$ifdef MediumBlocksLockedCriticalSection}
   LargeBlocksLocked := CLockByteFinished;
-  DeleteCriticalSection(MediumBlocksLockedCS);
+  {$ifdef fpc}DoneCriticalSection{$else}DeleteCriticalSection{$endif}(MediumBlocksLockedCS);
   {$endif MediumBlocksLockedCriticalSection}
 
   {$ifdef LargeBlocksLockedCriticalSection}
   LargeBlocksLocked := CLockByteFinished;
-  DeleteCriticalSection(LargeBlocksLockedCS);
+  {$ifdef fpc}DoneCriticalSection{$else}DeleteCriticalSection{$endif}(LargeBlocksLockedCS);
   {$endif LargeBlocksLockedCriticalSection}
 
   {$ifdef SmallBlocksLockedCriticalSection}
@@ -17449,7 +17461,7 @@ begin
   begin
     for LInd := Low(SmallBlockCriticalSections) to High(SmallBlockCriticalSections) do
     begin
-      DeleteCriticalSection(SmallBlockCriticalSections[LInd]);
+      {$ifdef fpc}DoneCriticalSection{$else}DeleteCriticalSection{$endif}(SmallBlockCriticalSections[LInd]);
     end;
   end;
 
