@@ -7401,7 +7401,7 @@ begin
         {Both this block type and the next is in use: sleep}
         Sleep(InitialSleepTime);
         {Try to acquire the lock again}
-        if AcquireLockByte(@LPSmallBlockType.SmallBlockTypeLocked) then
+        if AcquireLockByte(LPSmallBlockType.SmallBlockTypeLocked) then
           Break;
         {Sleep longer}
         Sleep(AdditionalSleepTime);
@@ -8144,7 +8144,7 @@ like IsMultithreaded or MediumBlocksLocked}
 
 { The 32-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
 By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
-
+@LockSmallBlockTypeLoop:
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   mov edx, eax
   {Attempt to grab the block type}
@@ -8702,7 +8702,7 @@ asm
 
 { The 64-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
 By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
-
+@LockSmallBlockTypeLoop:
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   mov edx, eax
   {Attempt to grab the block type}
@@ -9453,7 +9453,7 @@ begin
   {$endif}
 {$else}
         Sleep(InitialSleepTime);
-        if AcquireLockByte(@(LPSmallBlockType.SmallBlockTypeLocked)) then
+        if AcquireLockByte(LPSmallBlockType.SmallBlockTypeLocked) then
           Break;
         Sleep(AdditionalSleepTime);
 {$endif}
@@ -9827,7 +9827,7 @@ for flags like IsMultiThreaded or MediumBlocksLocked}
 
 { The 32-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
 By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
-
+@LockSmallBlockTypeLoop:
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
   lock cmpxchg TSmallBlockType([ebx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
@@ -10276,7 +10276,7 @@ asm
 
 { The 64-bit implemenation from the original FastMM4 that employs a loop of Sleep() or SwitchToThread().
 By default, it will not be compiled into FastMM4-AVX which uses more efficient approach.}
-
+@LockSmallBlockTypeLoop:
   mov eax, (cLockbyteLocked shl 8) or cLockByteAvailable
   {Attempt to grab the block type}
   lock cmpxchg TSmallBlockType([rbx]).SmallBlockTypeLocked, ah  // cmpxchg also uses AL as an implicit operand
