@@ -3281,7 +3281,7 @@ begin
   sched_yield;
 end;
 {$else}
-{$ifdef FPC}
+{$ifdef POSIX}
 procedure SwitchToThreadIfSupported;
 begin
   ThreadSwitch;
