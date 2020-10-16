@@ -16794,9 +16794,11 @@ ENDQUOTE}
          32*2: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move56AVX2;
          32*3: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move88AVX2;
          32*4: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move120AVX2;
+{$ifndef unix}
          32*5: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move152AVX2;
          32*6: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move184AVX2;
          32*7: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move216AVX2;
+{$endif}
       end;
     end else
     {$endif DisableAVX2}
@@ -16808,9 +16810,11 @@ ENDQUOTE}
          32*2: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move56AVX1;
          32*3: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move88AVX1;
          32*4: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move120AVX1;
+{$ifndef unix}
          32*5: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move152AVX1;
          32*6: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move184AVX1;
          32*7: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move216AVX1;
+{$endif}
      end;
     end else
    {$endif}
