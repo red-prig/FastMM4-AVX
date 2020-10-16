@@ -9433,7 +9433,7 @@ begin
 
 {$else SmallBlocksLockedCriticalSection}
 
-      while not (AcquireLockByte(@(LPSmallBlockType.SmallBlockTypeLocked))) do
+      while not (AcquireLockByte(LPSmallBlockType.SmallBlockTypeLocked)) do
       begin
 {$ifdef UseReleaseStack}
         LPReleaseStack := @LPSmallBlockType.ReleaseStack[GetStackSlot];
