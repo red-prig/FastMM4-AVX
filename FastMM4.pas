@@ -1,10 +1,14 @@
 (*
 
 FastMM4-AVX (efficient synchronization and AVX1/AVX2/AVX512/ERMS support for FastMM4)
+ - Copyright (C) 2017-2020 Ritlabs, SRL. All rights reserved.
+ - Copyright (C) 2020 Maxim Masiutin. All rights reserved.
+
+Written by Maxim Masiutin <maxim.masiutin@gmail.com>
 
 Version 1.04
 
-This is a fork of the Fast Memory Manager 4.992 by Pierre le Riche
+This is a fork of the "Fast Memory Manager" (FastMM) v4.992 by Pierre le Riche
 (see below for the original FastMM4 description)
 
 What was added to FastMM4-AVX in comparison to the original FastMM4:
@@ -226,13 +230,6 @@ contention, FastMM5 is faster.
 
 You can find the program, used to generate the benchmark data,
 at https://github.com/maximmasiutin/FastCodeBenchmark
-
-AVX1/AVX2/AVX512/ERMS support: 
- - Copyright (C) 2017-2020 Ritlabs S.R.L. All rights reserved.
- - Copyright (C) 2020 Maxim Masiutin. All rights reserved.
-
-AVX1/AVX2/AVX512/ERMS support
-is written by Maxim Masiutin <maxim.masiutin@gmail.com>
 
 FastMM4-AVX is released under a dual license, and you may choose to use it
 under either the Mozilla Public License 2.0 (MPL 2.1, available from
@@ -3782,17 +3779,17 @@ less, by "add rcx", but it pays up later}
   {$else}
                                 add rdi, 60h
                                 add rsi, 60h
- db $C5, $FD, $6F, $47, $A0  // vmovdqa ymm0, [rdi-60h]
- db $C5, $FD, $6F, $4F, $C0  // vmovdqa ymm1, [rdi-40h]
- db $C5, $FD, $6F, $57, $E0  // vmovdqa ymm2, [rdi-20h]
- db $C5, $FD, $6F, $1F       // vmovdqa ymm3, [rdi]
- db $C5, $F9, $6F, $67, $20  // vmovdqa xmm4, [rdi+20h]
+  db $C5, $FD, $6F, $47, $A0 // vmovdqa ymm0, [rdi-60h]
+  db $C5, $FD, $6F, $4F, $C0 // vmovdqa ymm1, [rdi-40h]
+  db $C5, $FD, $6F, $57, $E0 // vmovdqa ymm2, [rdi-20h]
+  db $C5, $FD, $6F, $1F      // vmovdqa ymm3, [rdi]
+  db $C5, $F9, $6F, $67, $20 // vmovdqa xmm4, [rdi+20h]
                                 mov rdi, [rdi+30h]
- db  $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
- db  $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
- db  $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
- db  $C5, $FD, $7F, $1E      // vmovdqa [rsi],     ymm3
- db  $C5, $F9, $7F, $66, $20 // vmovdqa [rsi+20h], xmm4
+  db $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
+  db $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
+  db $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
+  db $C5, $FD, $7F, $1E      // vmovdqa [rsi],     ymm3
+  db $C5, $F9, $7F, $66, $20 // vmovdqa [rsi+20h], xmm4
                                 mov [rsi+30h], rdi
   {$endif}
 {See the comment at Move120AVX1 on why we are using that many ymm registers}
@@ -3810,54 +3807,54 @@ asm
   .noframe
   {$endif}
 
-  db $C5, $F8, $77                // vzeroupper
+  db $C5, $F8, $77           // vzeroupper
 
   {$ifndef unix}
 
 {We add to the source and destination registers to allow all future offsets
 be in range -127..+127, see explanation at the Move152AVX1 routine}
 
-                                     add rcx, 60h
-                                     add rdx, 60h
-  db $C5, $FD, $6F, $41, $A0      // vmovdqa ymm0, [rcx-60h]
-  db $C5, $FD, $6F, $49, $C0      // vmovdqa ymm1, [rcx-40h]
-  db $C5, $FD, $6F, $51, $E0      // vmovdqa ymm2, [rcx-20h]
-  db $C5, $FD, $6F, $19           // vmovdqa ymm3, [rcx]
-  db $C5, $FD, $6F, $61, $20      // vmovdqa ymm4, [rcx+20h]
-  db $C5, $F9, $6F, $69, $40      // vmovdqa xmm5, [rcx+40h]
-                                     mov rcx, [rcx+50h]
-  db $C5, $FD, $7F, $42, $A0      // vmovdqa [rdx-60h], ymm0
-  db $C5, $FD, $7F, $4A, $C0      // vmovdqa [rdx-40h], ymm1
-  db $C5, $FD, $7F, $52, $E0      // vmovdqa [rdx-20h], ymm2
-  db $C5, $FD, $7F, $1A           // vmovdqa [rdx],     ymm3
-  db $C5, $FD, $7F, $62, $20      // vmovdqa [rdx+20h], ymm4
-  db $C5, $F9, $7F, $6A, $40      // vmovdqa [rdx+40h], xmm5
-                                     mov [rdx+50h], rcx
+                                add rcx, 60h
+                                add rdx, 60h
+  db $C5, $FD, $6F, $41, $A0 // vmovdqa ymm0, [rcx-60h]
+  db $C5, $FD, $6F, $49, $C0 // vmovdqa ymm1, [rcx-40h]
+  db $C5, $FD, $6F, $51, $E0 // vmovdqa ymm2, [rcx-20h]
+  db $C5, $FD, $6F, $19      // vmovdqa ymm3, [rcx]
+  db $C5, $FD, $6F, $61, $20 // vmovdqa ymm4, [rcx+20h]
+  db $C5, $F9, $6F, $69, $40 // vmovdqa xmm5, [rcx+40h]
+                                mov rcx, [rcx+50h]
+  db $C5, $FD, $7F, $42, $A0 // vmovdqa [rdx-60h], ymm0
+  db $C5, $FD, $7F, $4A, $C0 // vmovdqa [rdx-40h], ymm1
+  db $C5, $FD, $7F, $52, $E0 // vmovdqa [rdx-20h], ymm2
+  db $C5, $FD, $7F, $1A      // vmovdqa [rdx],     ymm3
+  db $C5, $FD, $7F, $62, $20 // vmovdqa [rdx+20h], ymm4
+  db $C5, $F9, $7F, $6A, $40 // vmovdqa [rdx+40h], xmm5
+                                mov [rdx+50h], rcx
   {$else}
-                                     add rdi, 60h
-                                     add rsi, 60h
-  db $C5, $FD, $6F, $47, $A0      // vmovdqa ymm0, [rdi-60h]
-  db $C5, $FD, $6F, $4F, $C0      // vmovdqa ymm1, [rdi-40h]
-  db $C5, $FD, $6F, $57, $E0      // vmovdqa ymm2, [rdi-20h]
-  db $C5, $FD, $6F, $1F           // vmovdqa ymm3, [rdi]
-  db $C5, $FD, $6F, $67, $20      // vmovdqa ymm4, [rdi+20h]
-  db $C5, $F9, $6F, $6F, $40      // vmovdqa xmm5, [rdi+40h]
-                                     mov rdi, [rdi+50h]
-  db $C5, $FD, $7F, $46, $A0      // vmovdqa [rsi-60h], ymm0
-  db $C5, $FD, $7F, $4E, $C0      // vmovdqa [rsi-40h], ymm1
-  db $C5, $FD, $7F, $56, $E0      // vmovdqa [rsi-20h], ymm2
-  db $C5, $FD, $7F, $1E           // vmovdqa [rsi],     ymm3
-  db $C5, $FD, $7F, $66, $20      // vmovdqa [rsi+20h], ymm4
-  db $C5, $F9, $7F, $6E, $40      // vmovdqa [rsi+40h], xmm5
-                                     mov [rsi+50h], rdi
+                                add rdi, 60h
+                                add rsi, 60h
+  db $C5, $FD, $6F, $47, $A0 // vmovdqa ymm0, [rdi-60h]
+  db $C5, $FD, $6F, $4F, $C0 // vmovdqa ymm1, [rdi-40h]
+  db $C5, $FD, $6F, $57, $E0 // vmovdqa ymm2, [rdi-20h]
+  db $C5, $FD, $6F, $1F      // vmovdqa ymm3, [rdi]
+  db $C5, $FD, $6F, $67, $20 // vmovdqa ymm4, [rdi+20h]
+  db $C5, $F9, $6F, $6F, $40 // vmovdqa xmm5, [rdi+40h]
+                                mov rdi, [rdi+50h]
+  db $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
+  db $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
+  db $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
+  db $C5, $FD, $7F, $1E      // vmovdqa [rsi],     ymm3
+  db $C5, $FD, $7F, $66, $20 // vmovdqa [rsi+20h], ymm4
+  db $C5, $F9, $7F, $6E, $40 // vmovdqa [rsi+40h], xmm5
+                                mov [rsi+50h], rdi
   {$endif}
-  db $C5, $FC, $57, $C0           // vxorps ymm0,ymm0,ymm0
-  db $C5, $F4, $57, $C9           // vxorps ymm1,ymm1,ymm1
-  db $C5, $EC, $57, $D2           // vxorps ymm2,ymm2,ymm2
-  db $C5, $E4, $57, $DB           // vxorps ymm3,ymm3,ymm3
-  db $C5, $DC, $57, $E4           // vxorps ymm4,ymm4,ymm4
-  db $C5, $D0, $57, $ED           // vxorps xmm5,xmm5,xmm5
-  db $C5, $F8, $77                // vzeroupper
+  db $C5, $FC, $57, $C0      // vxorps ymm0,ymm0,ymm0
+  db $C5, $F4, $57, $C9      // vxorps ymm1,ymm1,ymm1
+  db $C5, $EC, $57, $D2      // vxorps ymm2,ymm2,ymm2
+  db $C5, $E4, $57, $DB      // vxorps ymm3,ymm3,ymm3
+  db $C5, $DC, $57, $E4      // vxorps ymm4,ymm4,ymm4
+  db $C5, $D0, $57, $ED      // vxorps xmm5,xmm5,xmm5
+  db $C5, $F8, $77           // vzeroupper
 end;
 
 procedure Move216AVX1(const ASource; var ADest; ACount: NativeInt); {$ifdef fpc64bit} assembler; nostackframe; {$endif}
@@ -3866,17 +3863,17 @@ asm
   .noframe
   {$endif}
 
-  db $C5, $F8, $77                // vzeroupper
+  db $C5, $F8, $77           // vzeroupper
 
   {$ifndef unix}
-                                   add rcx, 60h
-                                   add rdx, 60h
-  db $C5, $FD, $6F, $41, $A0    // vmovdqa ymm0, [rcx-60h]
-  db $C5, $FD, $6F, $49, $C0    // vmovdqa ymm1, [rcx-40h]
-  db $C5, $FD, $6F, $51, $E0    // vmovdqa ymm2, [rcx-20h]
-  db $C5, $FD, $6F, $19         // vmovdqa ymm3, [rcx]
-  db $C5, $FD, $6F, $61, $20    // vmovdqa ymm4, [rcx+20h]
-  db $C5, $FD, $6F, $69, $40    // vmovdqa ymm5, [rcx+40h]
+                                add rcx, 60h
+                                add rdx, 60h
+  db $C5, $FD, $6F, $41, $A0 // vmovdqa ymm0, [rcx-60h]
+  db $C5, $FD, $6F, $49, $C0 // vmovdqa ymm1, [rcx-40h]
+  db $C5, $FD, $6F, $51, $E0 // vmovdqa ymm2, [rcx-20h]
+  db $C5, $FD, $6F, $19      // vmovdqa ymm3, [rcx]
+  db $C5, $FD, $6F, $61, $20 // vmovdqa ymm4, [rcx+20h]
+  db $C5, $FD, $6F, $69, $40 // vmovdqa ymm5, [rcx+40h]
 
 {The xmm6/ymm6 register is nonvolatile, according to Microsoft's
 Win64 calling convention. Since we cannot use xmm6, we use general-purpose
@@ -3890,52 +3887,52 @@ FastMM4 realloc) - see the comment at Move120AVX1 on why we are using that
 many ymm registers.}
 
 
-                                   mov r9, [rcx+60h]
-                                   mov r10, [rcx+68h]
-                                   mov r11, [rcx+70h]
-  db $C5, $FD, $7F, $42, $A0    // vmovdqa [rdx-60h], ymm0
-  db $C5, $FD, $7F, $4A, $C0    // vmovdqa [rdx-40h], ymm1
-  db $C5, $FD, $7F, $52, $E0    // vmovdqa [rdx-20h], ymm2
-  db $C5, $FD, $7F, $1A         // vmovdqa [rdx],     ymm3
-  db $C5, $FD, $7F, $62, $20    // vmovdqa [rdx+20h], ymm4
-  db $C5, $FD, $7F, $6A, $40    // vmovdqa [rdx+40h], ymm5
-                                   mov [rdx+60h], r9
-                                   mov [rdx+68h], r10
-                                   mov [rdx+70h], r11
+                                mov r9, [rcx+60h]
+                                mov r10, [rcx+68h]
+                                mov r11, [rcx+70h]
+  db $C5, $FD, $7F, $42, $A0 // vmovdqa [rdx-60h], ymm0
+  db $C5, $FD, $7F, $4A, $C0 // vmovdqa [rdx-40h], ymm1
+  db $C5, $FD, $7F, $52, $E0 // vmovdqa [rdx-20h], ymm2
+  db $C5, $FD, $7F, $1A      // vmovdqa [rdx],     ymm3
+  db $C5, $FD, $7F, $62, $20 // vmovdqa [rdx+20h], ymm4
+  db $C5, $FD, $7F, $6A, $40 // vmovdqa [rdx+40h], ymm5
+                                mov [rdx+60h], r9
+                                mov [rdx+68h], r10
+                                mov [rdx+70h], r11
   {$else}
-                                   add rdi, 60h
-                                   add rsi, 60h
-  db $C5, $FD, $6F, $41, $A0    // vmovdqa ymm0, [rdi-60h]
-  db $C5, $FD, $6F, $49, $C0    // vmovdqa ymm1, [rdi-40h]
-  db $C5, $FD, $6F, $51, $E0    // vmovdqa ymm2, [rdi-20h]
-  db $C5, $FD, $6F, $19         // vmovdqa ymm3, [rdi]
-  db $C5, $FD, $6F, $61, $20    // vmovdqa ymm4, [rdi+20h]
-  db $C5, $FD, $6F, $69, $40    // vmovdqa ymm5, [rdi+40h]
+                                add rdi, 60h
+                                add rsi, 60h
+  db $C5, $FD, $6F, $47, $A0 // vmovdqa ymm0, [rdi-60h]
+  db $C5, $FD, $6F, $4F, $C0 // vmovdqa ymm1, [rdi-40h]
+  db $C5, $FD, $6F, $57, $E0 // vmovdqa ymm2, [rdi-20h]
+  db $C5, $FD, $6F, $1F      // vmovdqa ymm3, [rdi]
+  db $C5, $FD, $6F, $67, $20 // vmovdqa ymm4, [rdi+20h]
+  db $C5, $FD, $6F, $6F, $40 // vmovdqa ymm5, [rdi+40h]
 
 {Although, under unix, we can use xmm6(ymm6) and xmm7 (ymm7), here we mimic
 the Win64 code, thus use up to ymm5, and use general-purpose 64-bit registers
 to copy remaining data - 24 bytes, which is still smaller than the full ymm
 register (32 bytes)}
-                                   mov r9,  [rdi+60h]
-                                   mov r10, [rdi+68h]
-                                   mov r11, [rdi+70h]
-  db $C5, $FD, $7F, $42, $A0    // vmovdqa [rsi-60h], ymm0
-  db $C5, $FD, $7F, $4A, $C0    // vmovdqa [rsi-40h], ymm1
-  db $C5, $FD, $7F, $52, $E0    // vmovdqa [rsi-20h], ymm2
-  db $C5, $FD, $7F, $1A         // vmovdqa [rsi],     ymm3
-  db $C5, $FD, $7F, $62, $20    // vmovdqa [rsi+20h], ymm4
-  db $C5, $FD, $7F, $6A, $40    // vmovdqa [rsi+40h], ymm5
-                                   mov [rsi+60h], r9
-                                   mov [rsi+68h], r10
-                                   mov [rsi+70h], r11
+                                mov r9,  [rdi+60h]
+                                mov r10, [rdi+68h]
+                                mov r11, [rdi+70h]
+  db $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
+  db $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
+  db $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
+  db $C5, $FD, $7F, $1A      // vmovdqa [rsi],     ymm3
+  db $C5, $FD, $7F, $66, $20 // vmovdqa [rsi+20h], ymm4
+  db $C5, $FD, $7F, $6E, $40 // vmovdqa [rsi+40h], ymm5
+                                mov [rsi+60h], r9
+                                mov [rsi+68h], r10
+                                mov [rsi+70h], r11
   {$endif}
-  db $C5, $FC, $57, $C0         // vxorps ymm0,ymm0,ymm0
-  db $C5, $F4, $57, $C9         // vxorps ymm1,ymm1,ymm1
-  db $C5, $EC, $57, $D2         // vxorps ymm2,ymm2,ymm2
-  db $C5, $E4, $57, $DB         // vxorps ymm3,ymm3,ymm3
-  db $C5, $DC, $57, $E4         // vxorps ymm4,ymm4,ymm4
-  db $C5, $D4, $57, $ED         // vxorps ymm5,ymm5,ymm5
-  db $C5, $F8, $77              // vzeroupper
+  db $C5, $FC, $57, $C0      // vxorps ymm0,ymm0,ymm0
+  db $C5, $F4, $57, $C9      // vxorps ymm1,ymm1,ymm1
+  db $C5, $EC, $57, $D2      // vxorps ymm2,ymm2,ymm2
+  db $C5, $E4, $57, $DB      // vxorps ymm3,ymm3,ymm3
+  db $C5, $DC, $57, $E4      // vxorps ymm4,ymm4,ymm4
+  db $C5, $D4, $57, $ED      // vxorps ymm5,ymm5,ymm5
+  db $C5, $F8, $77           // vzeroupper
 end;
 {$endif DisableAVX1}
 
@@ -4099,46 +4096,46 @@ asm
   {$ifdef AllowAsmNoframe}
   .noframe
   {$endif}
-                                     add rcx, 60h
-                                     add rdx, 60h
-  db $C5, $FD, $6F, $41, $A0      // vmovdqa ymm0, [rcx-60h]
-  db $C5, $FD, $6F, $49, $C0      // vmovdqa ymm1, [rcx-40h]
-  db $C5, $FD, $6F, $51, $E0      // vmovdqa ymm2, [rcx-20h]
-  db $C5, $FD, $6F, $19           // vmovdqa ymm3, [rcx]
-  db $C5, $FD, $6F, $61, $20      // vmovdqa ymm4, [rcx+20h]
-  db $C5, $F9, $6F, $69, $40      // vmovdqa xmm5, [rcx+40h]
-                                     mov rcx, [rcx+50h]
-  db $C5, $FD, $7F, $42, $A0      // vmovdqa [rdx-60h], ymm0
-  db $C5, $FD, $7F, $4A, $C0      // vmovdqa [rdx-40h], ymm1
-  db $C5, $FD, $7F, $52, $E0      // vmovdqa [rdx-20h], ymm2
-  db $C5, $FD, $7F, $1A           // vmovdqa [rdx],     ymm3
-  db $C5, $FD, $7F, $62, $20      // vmovdqa [rdx+20h], ymm4
-  db $C5, $F9, $7F, $6A, $40      // vmovdqa [rdx+40h], xmm5
+                                add rcx, 60h
+                                add rdx, 60h
+  db $C5, $FD, $6F, $41, $A0 // vmovdqa ymm0, [rcx-60h]
+  db $C5, $FD, $6F, $49, $C0 // vmovdqa ymm1, [rcx-40h]
+  db $C5, $FD, $6F, $51, $E0 // vmovdqa ymm2, [rcx-20h]
+  db $C5, $FD, $6F, $19      // vmovdqa ymm3, [rcx]
+  db $C5, $FD, $6F, $61, $20 // vmovdqa ymm4, [rcx+20h]
+  db $C5, $F9, $6F, $69, $40 // vmovdqa xmm5, [rcx+40h]
+                                mov rcx, [rcx+50h]
+  db $C5, $FD, $7F, $42, $A0 // vmovdqa [rdx-60h], ymm0
+  db $C5, $FD, $7F, $4A, $C0 // vmovdqa [rdx-40h], ymm1
+  db $C5, $FD, $7F, $52, $E0 // vmovdqa [rdx-20h], ymm2
+  db $C5, $FD, $7F, $1A      // vmovdqa [rdx],     ymm3
+  db $C5, $FD, $7F, $62, $20 // vmovdqa [rdx+20h], ymm4
+  db $C5, $F9, $7F, $6A, $40 // vmovdqa [rdx+40h], xmm5
   mov [rdx+50h],rcx
   {$else}
-                                     add rdi, 60h
-                                     add rsi, 60h
-  db $C5, $FD, $6F, $47, $A0      // vmovdqa ymm0, [rdi-60h]
-  db $C5, $FD, $6F, $4F, $C0      // vmovdqa ymm1, [rdi-40h]
-  db $C5, $FD, $6F, $57, $E0      // vmovdqa ymm2, [rdi-20h]
-  db $C5, $FD, $6F, $1F           // vmovdqa ymm3, [rdi]
-  db $C5, $FD, $6F, $67, $20      // vmovdqa ymm4, [rdi+20h]
-  db $C5, $F9, $6F, $6F, $40      // vmovdqa xmm5, [rdi+40h]
-                                     mov rdi, [rdi+50h]
-  db $C5, $FD, $7F, $46, $A0      // vmovdqa [rsi-60h], ymm0
-  db $C5, $FD, $7F, $4E, $C0      // vmovdqa [rsi-40h], ymm1
-  db $C5, $FD, $7F, $56, $E0      // vmovdqa [rsi-20h], ymm2
-  db $C5, $FD, $7F, $1E           // vmovdqa [rsi],     ymm3
-  db $C5, $FD, $7F, $66, $20      // vmovdqa [rsi+20h], ymm4
-  db $C5, $F9, $7F, $6E, $40      // vmovdqa [rsi+40h], xmm5
-                                     mov [rsi+50h], rdi
+                                add rdi, 60h
+                                add rsi, 60h
+  db $C5, $FD, $6F, $47, $A0 // vmovdqa ymm0, [rdi-60h]
+  db $C5, $FD, $6F, $4F, $C0 // vmovdqa ymm1, [rdi-40h]
+  db $C5, $FD, $6F, $57, $E0 // vmovdqa ymm2, [rdi-20h]
+  db $C5, $FD, $6F, $1F      // vmovdqa ymm3, [rdi]
+  db $C5, $FD, $6F, $67, $20 // vmovdqa ymm4, [rdi+20h]
+  db $C5, $F9, $6F, $6F, $40 // vmovdqa xmm5, [rdi+40h]
+                                mov rdi, [rdi+50h]
+  db $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
+  db $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
+  db $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
+  db $C5, $FD, $7F, $1E      // vmovdqa [rsi],     ymm3
+  db $C5, $FD, $7F, $66, $20 // vmovdqa [rsi+20h], ymm4
+  db $C5, $F9, $7F, $6E, $40 // vmovdqa [rsi+40h], xmm5
+                                mov [rsi+50h], rdi
   {$endif}
-  db $C5, $FD, $EF, $C0           // vpxor ymm0,ymm0,ymm0
-  db $C5, $F5, $EF, $C9           // vpxor ymm1,ymm1,ymm1
-  db $C5, $ED, $EF, $D2           // vpxor ymm2,ymm2,ymm2
-  db $C5, $E5, $EF, $DB           // vpxor ymm3,ymm3,ymm3
-  db $C5, $DD, $EF, $E4           // vpxor ymm4,ymm4,ymm4
-  db $C5, $D1, $EF, $ED           // vpxor xmm5,xmm5,xmm5
+  db $C5, $FD, $EF, $C0      // vpxor ymm0,ymm0,ymm0
+  db $C5, $F5, $EF, $C9      // vpxor ymm1,ymm1,ymm1
+  db $C5, $ED, $EF, $D2      // vpxor ymm2,ymm2,ymm2
+  db $C5, $E5, $EF, $DB      // vpxor ymm3,ymm3,ymm3
+  db $C5, $DD, $EF, $E4      // vpxor ymm4,ymm4,ymm4
+  db $C5, $D1, $EF, $ED      // vpxor xmm5,xmm5,xmm5
 end;
 
 procedure Move216AVX2(const ASource; var ADest; ACount: NativeInt); {$ifdef fpc64bit} assembler; nostackframe; {$endif}
@@ -4147,35 +4144,35 @@ asm
   {$ifdef AllowAsmNoframe}
   .noframe
   {$endif}
-                                   add rcx, 60h
-                                   add rdx, 60h
-  db $C5, $FD, $6F, $41, $A0    // vmovdqa ymm0, [rcx-60h]
-  db $C5, $FD, $6F, $49, $C0    // vmovdqa ymm1, [rcx-40h]
-  db $C5, $FD, $6F, $51, $E0    // vmovdqa ymm2, [rcx-20h]
-  db $C5, $FD, $6F, $19         // vmovdqa ymm3, [rcx]
-  db $C5, $FD, $6F, $61, $20    // vmovdqa ymm4, [rcx+20h]
-  db $C5, $FD, $6F, $69, $40    // vmovdqa ymm5, [rcx+40h]
+                                add rcx, 60h
+                                add rdx, 60h
+  db $C5, $FD, $6F, $41, $A0 // vmovdqa ymm0, [rcx-60h]
+  db $C5, $FD, $6F, $49, $C0 // vmovdqa ymm1, [rcx-40h]
+  db $C5, $FD, $6F, $51, $E0 // vmovdqa ymm2, [rcx-20h]
+  db $C5, $FD, $6F, $19      // vmovdqa ymm3, [rcx]
+  db $C5, $FD, $6F, $61, $20 // vmovdqa ymm4, [rcx+20h]
+  db $C5, $FD, $6F, $69, $40 // vmovdqa ymm5, [rcx+40h]
   mov r9, [rcx+60h]
   mov r10, [rcx+68h]
   mov r11, [rcx+70h]
-  db $C5, $FD, $7F, $42, $A0    // vmovdqa [rdx-60h], ymm0
-  db $C5, $FD, $7F, $4A, $C0    // vmovdqa [rdx-40h], ymm1
-  db $C5, $FD, $7F, $52, $E0    // vmovdqa [rdx-20h], ymm2
-  db $C5, $FD, $7F, $1A         // vmovdqa [rdx],     ymm3
-  db $C5, $FD, $7F, $62, $20    // vmovdqa [rdx+20h], ymm4
-  db $C5, $FD, $7F, $6A, $40    // vmovdqa [rdx+40h], ymm5
+  db $C5, $FD, $7F, $42, $A0 // vmovdqa [rdx-60h], ymm0
+  db $C5, $FD, $7F, $4A, $C0 // vmovdqa [rdx-40h], ymm1
+  db $C5, $FD, $7F, $52, $E0 // vmovdqa [rdx-20h], ymm2
+  db $C5, $FD, $7F, $1A      // vmovdqa [rdx],     ymm3
+  db $C5, $FD, $7F, $62, $20 // vmovdqa [rdx+20h], ymm4
+  db $C5, $FD, $7F, $6A, $40 // vmovdqa [rdx+40h], ymm5
   mov [rdx+60h], r9
   mov [rdx+68h], r10
   mov [rdx+70h], r11
   {$else}
-                                   add rdi, 60h
-                                   add rsi, 60h
-  db $C5, $FD, $6F, $41, $A0    // vmovdqa ymm0, [rdi-60h]
-  db $C5, $FD, $6F, $49, $C0    // vmovdqa ymm1, [rdi-40h]
-  db $C5, $FD, $6F, $51, $E0    // vmovdqa ymm2, [rdi-20h]
-  db $C5, $FD, $6F, $19         // vmovdqa ymm3, [rdi]
-  db $C5, $FD, $6F, $61, $20    // vmovdqa ymm4, [rdi+20h]
-  db $C5, $FD, $6F, $69, $40    // vmovdqa ymm5, [rdi+40h]
+                                add rdi, 60h
+                                add rsi, 60h
+  db $C5, $FD, $6F, $47, $A0 // vmovdqa ymm0, [rdi-60h]
+  db $C5, $FD, $6F, $49, $C0 // vmovdqa ymm1, [rdi-40h]
+  db $C5, $FD, $6F, $51, $E0 // vmovdqa ymm2, [rdi-20h]
+  db $C5, $FD, $6F, $19      // vmovdqa ymm3, [rdi]
+  db $C5, $FD, $6F, $67, $20 // vmovdqa ymm4, [rdi+20h]
+  db $C5, $FD, $6F, $6F, $40 // vmovdqa ymm5, [rdi+40h]
 
 {
 
@@ -4186,25 +4183,25 @@ We cannot use xmm6(ymm6) and xmm7 (ymm7) under Windows due to the calling conven
 According to Microsoft, "The registers RBX, RBP, RDI, RSI, RSP, R12, R13, R14, R15, and XMM6-15 are considered nonvolatile and must be saved and restored by a function that uses them."
 
 }
-                                   mov r9,  [rdi+60h]
-                                   mov r10, [rdi+68h]
-                                   mov r11, [rdi+70h]
-  db $C5, $FD, $7F, $42, $A0    // vmovdqa [rsi-60h], ymm0
-  db $C5, $FD, $7F, $4A, $C0    // vmovdqa [rsi-40h], ymm1
-  db $C5, $FD, $7F, $52, $E0    // vmovdqa [rsi-20h], ymm2
-  db $C5, $FD, $7F, $1A         // vmovdqa [rsi],     ymm3
-  db $C5, $FD, $7F, $62, $20    // vmovdqa [rsi+20h], ymm4
-  db $C5, $FD, $7F, $6A, $40    // vmovdqa [rsi+40h], ymm5
-                                   mov [rsi+60h], r9
-                                   mov [rsi+68h], r10
-                                   mov [rsi+70h], r11
+                                mov r9,  [rdi+60h]
+                                mov r10, [rdi+68h]
+                                mov r11, [rdi+70h]
+  db $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
+  db $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
+  db $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
+  db $C5, $FD, $7F, $1E      // vmovdqa [rsi],     ymm3
+  db $C5, $FD, $7F, $66, $20 // vmovdqa [rsi+20h], ymm4
+  db $C5, $FD, $7F, $6E, $40 // vmovdqa [rsi+40h], ymm5
+                                mov [rsi+60h], r9
+                                mov [rsi+68h], r10
+                                mov [rsi+70h], r11
   {$endif}
-  db $C5, $FD, $EF, $C0         // vpxor ymm0,ymm0,ymm0
-  db $C5, $F5, $EF, $C9         // vpxor ymm1,ymm1,ymm1
-  db $C5, $ED, $EF, $D2         // vpxor ymm2,ymm2,ymm2
-  db $C5, $E5, $EF, $DB         // vpxor ymm3,ymm3,ymm3
-  db $C5, $DD, $EF, $E4         // vpxor ymm4,ymm4,ymm4
-  db $C5, $D5, $EF, $ED         // vpxor ymm5,ymm5,ymm5
+  db $C5, $FD, $EF, $C0      // vpxor ymm0,ymm0,ymm0
+  db $C5, $F5, $EF, $C9      // vpxor ymm1,ymm1,ymm1
+  db $C5, $ED, $EF, $D2      // vpxor ymm2,ymm2,ymm2
+  db $C5, $E5, $EF, $DB      // vpxor ymm3,ymm3,ymm3
+  db $C5, $DD, $EF, $E4      // vpxor ymm4,ymm4,ymm4
+  db $C5, $D5, $EF, $ED      // vpxor ymm5,ymm5,ymm5
 end;
 {$endif DisableAVX2}
 
@@ -4828,14 +4825,14 @@ asm
   {$ifdef AsmCodeAlign}.align 16{$endif}
 
 @AvxBigMoveAlignedAll:
-  db $C4, $C1, $7D, $6F, $04, $08          // vmovdqa ymm0, ymmword ptr [rcx+r8]
-  db $C4, $C1, $7D, $6F, $4C, $08, $20     // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
-  db $C4, $C1, $7D, $6F, $54, $08, $40     // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
-  db $C4, $C1, $7D, $6F, $5C, $08, $60     // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
-  db $C4, $C1, $7D, $7F, $04, $10          // vmovdqa ymmword ptr [rdx+r8], ymm0
-  db $C4, $C1, $7D, $7F, $4C, $10, $20     // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
-  db $C4, $C1, $7D, $7F, $54, $10, $40     // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
-  db $C4, $C1, $7D, $7F, $5C, $10, $60     // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
+  db $C4, $C1, $7D, $6F, $04, $08      // vmovdqa ymm0, ymmword ptr [rcx+r8]
+  db $C4, $C1, $7D, $6F, $4C, $08, $20 // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
+  db $C4, $C1, $7D, $6F, $54, $08, $40 // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
+  db $C4, $C1, $7D, $6F, $5C, $08, $60 // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
+  db $C4, $C1, $7D, $7F, $04, $10      // vmovdqa ymmword ptr [rdx+r8], ymm0
+  db $C4, $C1, $7D, $7F, $4C, $10, $20 // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
+  db $C4, $C1, $7D, $7F, $54, $10, $40 // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
+  db $C4, $C1, $7D, $7F, $5C, $10, $60 // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
   add r8, 128
   cmp r8, -128
   jl  @AvxBigMoveAlignedAll
@@ -4846,17 +4843,17 @@ asm
 
 @MoveLoopAvx:
   {Move a 16 byte block}
-  db $C4, $A1, $79, $6F, $04, $01  // vmovdqa xmm0,xmmword ptr [rcx+r8]
-  db $C4, $A1, $79, $7F, $04, $02  // vmovdqa xmmword ptr [rdx+r8],xmm0
+  db $C4, $A1, $79, $6F, $04, $01      // vmovdqa xmm0,xmmword ptr [rcx+r8]
+  db $C4, $A1, $79, $7F, $04, $02      // vmovdqa xmmword ptr [rdx+r8],xmm0
   {Are there another 16 bytes to move?}
   add r8, 16
   js @MoveLoopAvx
 
-  db $C5, $FC, $57, $C0          // vxorps      ymm0,ymm0,ymm0
-  db $C5, $F4, $57, $C9          // vxorps      ymm1,ymm1,ymm1
-  db $C5, $EC, $57, $D2          // vxorps      ymm2,ymm2,ymm2
-  db $C5, $E4, $57, $DB          // vxorps      ymm3,ymm3,ymm3
-  db $C5, $F8, $77               // vzeroupper
+  db $C5, $FC, $57, $C0                // vxorps      ymm0,ymm0,ymm0
+  db $C5, $F4, $57, $C9                // vxorps      ymm1,ymm1,ymm1
+  db $C5, $EC, $57, $D2                // vxorps      ymm2,ymm2,ymm2
+  db $C5, $E4, $57, $DB                // vxorps      ymm3,ymm3,ymm3
+  db $C5, $F8, $77                     // vzeroupper
 
   {$ifdef AsmCodeAlign}.align 8{$endif}
 
@@ -4890,14 +4887,14 @@ asm
   {$ifdef AsmCodeAlign}.align 16{$endif}
 
 @AvxBigMoveAlignedAll:
-  db $C4, $C1, $7D, $6F, $04, $08          // vmovdqa ymm0, ymmword ptr [rcx+r8]
-  db $C4, $C1, $7D, $6F, $4C, $08, $20     // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
-  db $C4, $C1, $7D, $6F, $54, $08, $40     // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
-  db $C4, $C1, $7D, $6F, $5C, $08, $60     // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
-  db $C4, $C1, $7D, $7F, $04, $10          // vmovdqa ymmword ptr [rdx+r8], ymm0
-  db $C4, $C1, $7D, $7F, $4C, $10, $20     // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
-  db $C4, $C1, $7D, $7F, $54, $10, $40     // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
-  db $C4, $C1, $7D, $7F, $5C, $10, $60     // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
+  db $C4, $C1, $7D, $6F, $04, $08      // vmovdqa ymm0, ymmword ptr [rcx+r8]
+  db $C4, $C1, $7D, $6F, $4C, $08, $20 // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
+  db $C4, $C1, $7D, $6F, $54, $08, $40 // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
+  db $C4, $C1, $7D, $6F, $5C, $08, $60 // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
+  db $C4, $C1, $7D, $7F, $04, $10      // vmovdqa ymmword ptr [rdx+r8], ymm0
+  db $C4, $C1, $7D, $7F, $4C, $10, $20 // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
+  db $C4, $C1, $7D, $7F, $54, $10, $40 // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
+  db $C4, $C1, $7D, $7F, $5C, $10, $60 // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
   add r8, 128
   cmp r8, -128
   jl  @AvxBigMoveAlignedAll
@@ -4908,16 +4905,16 @@ asm
 
 @MoveLoopAvx:
   {Move a 16 byte block}
-  db $C4, $A1, $79, $6F, $04, $01  // vmovdqa xmm0,xmmword ptr [rcx+r8]
-  db $C4, $A1, $79, $7F, $04, $02  // vmovdqa xmmword ptr [rdx+r8],xmm0
+  db $C4, $A1, $79, $6F, $04, $01       // vmovdqa xmm0,xmmword ptr [rcx+r8]
+  db $C4, $A1, $79, $7F, $04, $02       // vmovdqa xmmword ptr [rdx+r8],xmm0
   {Are there another 16 bytes to move?}
   add r8, 16
   js @MoveLoopAvx
 
-  db $C5, $FD, $EF, $C0          // vpxor       ymm0,ymm0,ymm0
-  db $C5, $F5, $EF, $C9          // vpxor       ymm1,ymm1,ymm1
-  db $C5, $ED, $EF, $D2          // vpxor       ymm2,ymm2,ymm2
-  db $C5, $E5, $EF, $DB          // vpxor       ymm3,ymm3,ymm3
+  db $C5, $FD, $EF, $C0                 // vpxor       ymm0,ymm0,ymm0
+  db $C5, $F5, $EF, $C9                 // vpxor       ymm1,ymm1,ymm1
+  db $C5, $ED, $EF, $D2                 // vpxor       ymm2,ymm2,ymm2
+  db $C5, $E5, $EF, $DB                 // vpxor       ymm3,ymm3,ymm3
 
   {$ifdef AsmCodeAlign}.align 8{$endif}
 @MoveLast8:
@@ -4982,14 +4979,14 @@ asm
   {$ifdef AsmCodeAlign}.align 16{$endif}
 
 @AvxBigMoveAlignedAll:
-  db $C4, $C1, $7D, $6F, $04, $08          // vmovdqa ymm0, ymmword ptr [rcx+r8]
-  db $C4, $C1, $7D, $6F, $4C, $08, $20     // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
-  db $C4, $C1, $7D, $6F, $54, $08, $40     // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
-  db $C4, $C1, $7D, $6F, $5C, $08, $60     // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
-  db $C4, $C1, $7D, $7F, $04, $10          // vmovdqa ymmword ptr [rdx+r8], ymm0
-  db $C4, $C1, $7D, $7F, $4C, $10, $20     // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
-  db $C4, $C1, $7D, $7F, $54, $10, $40     // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
-  db $C4, $C1, $7D, $7F, $5C, $10, $60     // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
+  db $C4, $C1, $7D, $6F, $04, $08      // vmovdqa ymm0, ymmword ptr [rcx+r8]
+  db $C4, $C1, $7D, $6F, $4C, $08, $20 // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
+  db $C4, $C1, $7D, $6F, $54, $08, $40 // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
+  db $C4, $C1, $7D, $6F, $5C, $08, $60 // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
+  db $C4, $C1, $7D, $7F, $04, $10      // vmovdqa ymmword ptr [rdx+r8], ymm0
+  db $C4, $C1, $7D, $7F, $4C, $10, $20 // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
+  db $C4, $C1, $7D, $7F, $54, $10, $40 // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
+  db $C4, $C1, $7D, $7F, $5C, $10, $60 // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
   add r8, 128
   cmp r8, -128
   jl  @AvxBigMoveAlignedAll
@@ -5000,17 +4997,17 @@ asm
 
 @MoveLoopAvx:
   {Move a 16 byte block}
-  db $C4, $A1, $79, $6F, $04, $01  // vmovdqa xmm0,xmmword ptr [rcx+r8]
-  db $C4, $A1, $79, $7F, $04, $02  // vmovdqa xmmword ptr [rdx+r8],xmm0
+  db $C4, $A1, $79, $6F, $04, $01      // vmovdqa xmm0,xmmword ptr [rcx+r8]
+  db $C4, $A1, $79, $7F, $04, $02      // vmovdqa xmmword ptr [rdx+r8],xmm0
   {Are there another 16 bytes to move?}
   add r8, 16
   js @MoveLoopAvx
 
-  db $C5, $FC, $57, $C0          // vxorps      ymm0,ymm0,ymm0
-  db $C5, $F4, $57, $C9          // vxorps      ymm1,ymm1,ymm1
-  db $C5, $EC, $57, $D2          // vxorps      ymm2,ymm2,ymm2
-  db $C5, $E4, $57, $DB          // vxorps      ymm3,ymm3,ymm3
-  db $C5, $F8, $77               // vzeroupper
+  db $C5, $FC, $57, $C0                // vxorps      ymm0,ymm0,ymm0
+  db $C5, $F4, $57, $C9                // vxorps      ymm1,ymm1,ymm1
+  db $C5, $EC, $57, $D2                // vxorps      ymm2,ymm2,ymm2
+  db $C5, $E4, $57, $DB                // vxorps      ymm3,ymm3,ymm3
+  db $C5, $F8, $77                     // vzeroupper
 
   {$ifdef AsmCodeAlign}.align 8{$endif}
 
@@ -5066,14 +5063,14 @@ asm
   {$ifdef AsmCodeAlign}.align 16{$endif}
 
 @AvxBigMoveAlignedAll:
-  db $C4, $C1, $7D, $6F, $04, $08          // vmovdqa ymm0, ymmword ptr [rcx+r8]
-  db $C4, $C1, $7D, $6F, $4C, $08, $20     // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
-  db $C4, $C1, $7D, $6F, $54, $08, $40     // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
-  db $C4, $C1, $7D, $6F, $5C, $08, $60     // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
-  db $C4, $C1, $7D, $7F, $04, $10          // vmovdqa ymmword ptr [rdx+r8], ymm0
-  db $C4, $C1, $7D, $7F, $4C, $10, $20     // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
-  db $C4, $C1, $7D, $7F, $54, $10, $40     // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
-  db $C4, $C1, $7D, $7F, $5C, $10, $60     // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
+  db $C4, $C1, $7D, $6F, $04, $08      // vmovdqa ymm0, ymmword ptr [rcx+r8]
+  db $C4, $C1, $7D, $6F, $4C, $08, $20 // vmovdqa ymm1, ymmword ptr [rcx+r8+20h]
+  db $C4, $C1, $7D, $6F, $54, $08, $40 // vmovdqa ymm2, ymmword ptr [rcx+r8+40h]
+  db $C4, $C1, $7D, $6F, $5C, $08, $60 // vmovdqa ymm3, ymmword ptr [rcx+r8+60h]
+  db $C4, $C1, $7D, $7F, $04, $10      // vmovdqa ymmword ptr [rdx+r8], ymm0
+  db $C4, $C1, $7D, $7F, $4C, $10, $20 // vmovdqa ymmword ptr [rdx+r8+20h], ymm1
+  db $C4, $C1, $7D, $7F, $54, $10, $40 // vmovdqa ymmword ptr [rdx+r8+40h], ymm2
+  db $C4, $C1, $7D, $7F, $5C, $10, $60 // vmovdqa ymmword ptr [rdx+r8+60h], ymm3
   add r8, 128
   cmp r8, -128
   jl  @AvxBigMoveAlignedAll
@@ -5084,16 +5081,16 @@ asm
 
 @MoveLoopAvx:
   {Move a 16 byte block}
-  db $C4, $A1, $79, $6F, $04, $01  // vmovdqa xmm0,xmmword ptr [rcx+r8]
-  db $C4, $A1, $79, $7F, $04, $02  // vmovdqa xmmword ptr [rdx+r8],xmm0
+  db $C4, $A1, $79, $6F, $04, $01      // vmovdqa xmm0,xmmword ptr [rcx+r8]
+  db $C4, $A1, $79, $7F, $04, $02      // vmovdqa xmmword ptr [rdx+r8],xmm0
   {Are there another 16 bytes to move?}
   add r8, 16
   js @MoveLoopAvx
 
-  db $C5, $FD, $EF, $C0          // vpxor       ymm0,ymm0,ymm0
-  db $C5, $F5, $EF, $C9          // vpxor       ymm1,ymm1,ymm1
-  db $C5, $ED, $EF, $D2          // vpxor       ymm2,ymm2,ymm2
-  db $C5, $E5, $EF, $DB          // vpxor       ymm3,ymm3,ymm3
+  db $C5, $FD, $EF, $C0                // vpxor       ymm0,ymm0,ymm0
+  db $C5, $F5, $EF, $C9                // vpxor       ymm1,ymm1,ymm1
+  db $C5, $ED, $EF, $D2                // vpxor       ymm2,ymm2,ymm2
+  db $C5, $E5, $EF, $DB                // vpxor       ymm3,ymm3,ymm3
 
   {$ifdef AsmCodeAlign}.align 8{$endif}
 
@@ -16794,11 +16791,9 @@ ENDQUOTE}
          32*2: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move56AVX2;
          32*3: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move88AVX2;
          32*4: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move120AVX2;
-{$ifndef unix}
          32*5: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move152AVX2;
          32*6: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move184AVX2;
          32*7: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move216AVX2;
-{$endif}
       end;
     end else
     {$endif DisableAVX2}
@@ -16810,11 +16805,9 @@ ENDQUOTE}
          32*2: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move56AVX1;
          32*3: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move88AVX1;
          32*4: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move120AVX1;
-{$ifndef unix}
          32*5: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move152AVX1;
          32*6: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move184AVX1;
          32*7: SmallBlockTypes[LInd].UpsizeMoveProcedure := Move216AVX1;
-{$endif}
      end;
     end else
    {$endif}
