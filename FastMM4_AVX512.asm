@@ -1,14 +1,13 @@
-
 ; This file is needed to enable AVX-512 code for FastMM4-AVX.
 ; Use "nasm.exe -Ox -f win64 FastMM4_AVX512.asm" to compile this file
-; You can get The Netwide Assembler, NASM, from http://www.nasm.us/
+; You can get The Netwide Assembler (NASM) from http://www.nasm.us/
 
 ; This file is a part of FastMM4-AVX.
-; FastMM4-AVX is a fork of the Fast Memory Manager 4.992 by Pierre le Riche
+; - Copyright (C) 2017-2020 Ritlabs, SRL. All rights reserved.
+; - Copyright (C) 2020 Maxim Masiutin. All rights reserved.
+; Written by Maxim Masiutin <maxim.masiutin@gmail.com>
 
-; FastMM4-AVX Copyright (C) 2017 Ritlabs S.R.L. All rights reserved.
-; https://www.ritlabs.com/
-; AVX1/AVX2/ERMS support is written by Maxim Masiutin <maxim.masiutin@gmail.com>
+; FastMM4-AVX is a fork of the Fast Memory Manager 4.992 by Pierre le Riche
 
 ; FastMM4-AVX is released under a dual license, and you may choose to use it
 ; under either the Mozilla Public License 2.0 (MPL 2.1, available from
