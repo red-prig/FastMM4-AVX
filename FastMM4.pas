@@ -15925,16 +15925,16 @@ begin
 end;
 
 {$ifdef fpc}
-function FastGetFPCHeapStatus:TFPCHeapStatus; //support get TFPCHeapStatus
-Var
- HS:THeapStatus;
+function FastGetFPCHeapStatus: TFPCHeapStatus; //support get TFPCHeapStatus
+var
+  HS: THeapStatus;
 begin
- HS:=FastGetHeapStatus;
- Result.MaxHeapSize :=HS.TotalAddrSpace;
- Result.MaxHeapUsed :=HS.TotalAllocated;
- Result.CurrHeapSize:=HS.TotalAddrSpace;
- Result.CurrHeapUsed:=HS.TotalAllocated;
- Result.CurrHeapFree:=HS.TotalFree;
+  HS := FastGetHeapStatus;
+  Result.MaxHeapSize  := HS.TotalAddrSpace;
+  Result.MaxHeapUsed  := HS.TotalAllocated;
+  Result.CurrHeapSize := HS.TotalAddrSpace;
+  Result.CurrHeapUsed := HS.TotalAllocated;
+  Result.CurrHeapFree := HS.TotalFree;
 end;
 {$endif}
 
