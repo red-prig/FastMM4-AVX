@@ -3062,7 +3062,10 @@ asm
   N Windows Unix   Comment
   1 rcx     rdi    first argument, in the GetCPUID function called "AEax" (Cardinal)
   2 rdx     rsi    second argument in the GetCPUID function called "ECx" (Cardinal)
-  3 r8      rdx    third argument, the address of the "R" (TCpuIdRegisters) structure }
+  3 r8      rdx    third argument, the address of the "R" (TCpuIdRegisters) structure
+
+For Windows, we use Microsoft's Win64 "x64 ABI" calling convention.
+For Unix (Linux), we use "System V AMD64 ABI" calling convention. }
 
 
 // load first argument into eax
@@ -3225,6 +3228,9 @@ loaded into byte ptr [ecx]. Else, clear ZF and load byte ptr [ecx] into AL.}
   db $F0, $0F, $B0, $11
   {$endif unix}
 {$else 32Bit}
+
+{Microsoft's Win64 "x64 ABI" calling convention.}
+
   {On entry:
     cl = CompareVal
     dl = NewVal
@@ -3238,11 +3244,12 @@ loaded into byte ptr [ecx]. Else, clear ZF and load byte ptr [ecx] into AL.}
   lock cmpxchg byte ptr [r8], dl  // cmpxchg also uses AL as an implicit operand
   xor rdx, rdx
   xor r8, r8
+
   {$else unix}
 
-{"System V AMD64 ABI" - the de facto standard among Unix and Unix-like
+{"System V AMD64 ABI" calling convention - the de facto standard among Unix-like
 operating systems. The first four integer or pointer arguments are passed in
-registers RDI, RSI, RDX, RCX; return value is stored in RAX and RDX }
+registers RDI, RSI, RDX, RCX; return value is stored in RAX and RDX.}
 
   {On entry:
     dil = CompareVal
@@ -3875,11 +3882,13 @@ asm
   db $C5, $FD, $6F, $61, $20 // vmovdqa ymm4, [rcx+20h]
   db $C5, $FD, $6F, $69, $40 // vmovdqa ymm5, [rcx+40h]
 
-{The xmm6/ymm6 register is nonvolatile, according to Microsoft's
-Win64 calling convention. Since we cannot use xmm6, we use general-purpose
+{The xmm6/ymm6 register is nonvolatile, according to
+Microsoft's x64 calling convention, used for Win64,
+denoted "The x64 Application Binary Interface (ABI)", or, briefly, "x64 ABI".
+Since we cannot use xmm6, we use general-purpose
 64-bit registers to copy remaining data.
 
-According to Microsoft, "The registers RBX, RBP, RDI, RSI, RSP, R12, R13, R14, R15, and XMM6-15 are considered nonvolatile and must be saved and restored by a function that uses them."
+According to Microsoft, "The x64 ABI considers registers RBX, RBP, RDI, RSI, RSP, R12, R13, R14, R15, and XMM6-XMM15 nonvolatile. They must be saved and restored by a function that uses them"
 
 We are using that many ymm registers, not just two of them in a sequence,
 because our routines allow overlapped moves (although it is not needed for
