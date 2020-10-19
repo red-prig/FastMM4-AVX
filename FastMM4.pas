@@ -17049,7 +17049,7 @@ var
 {$endif}
 begin
   {$ifdef fpc}
-   FillChar(NewMemoryManager,SizeOf(NewMemoryManager),0); //prevents potential UB on FPC
+   FillChar(NewMemoryManager, SizeOf(NewMemoryManager), 0); // prevents potential UB on FPC
   {$endif}
   if not FastMMIsInstalled then
   begin
