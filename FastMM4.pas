@@ -3919,7 +3919,7 @@ register (32 bytes)}
   db $C5, $FD, $7F, $46, $A0 // vmovdqa [rsi-60h], ymm0
   db $C5, $FD, $7F, $4E, $C0 // vmovdqa [rsi-40h], ymm1
   db $C5, $FD, $7F, $56, $E0 // vmovdqa [rsi-20h], ymm2
-  db $C5, $FD, $7F, $1A      // vmovdqa [rsi],     ymm3
+  db $C5, $FD, $7F, $1E      // vmovdqa [rsi],     ymm3
   db $C5, $FD, $7F, $66, $20 // vmovdqa [rsi+20h], ymm4
   db $C5, $FD, $7F, $6E, $40 // vmovdqa [rsi+40h], ymm5
                                 mov [rsi+60h], r9
@@ -4168,9 +4168,9 @@ asm
                                 add rdi, 60h
                                 add rsi, 60h
   db $C5, $FD, $6F, $47, $A0 // vmovdqa ymm0, [rdi-60h]
-  db $C5, $FD, $6F, $49, $C0 // vmovdqa ymm1, [rdi-40h]
-  db $C5, $FD, $6F, $51, $E0 // vmovdqa ymm2, [rdi-20h]
-  db $C5, $FD, $6F, $19      // vmovdqa ymm3, [rdi]
+  db $C5, $FD, $6F, $4F, $C0 // vmovdqa ymm1, [rdi-40h]
+  db $C5, $FD, $6F, $57, $E0 // vmovdqa ymm2, [rdi-20h]
+  db $C5, $FD, $6F, $1F      // vmovdqa ymm3, [rdi]
   db $C5, $FD, $6F, $67, $20 // vmovdqa ymm4, [rdi+20h]
   db $C5, $FD, $6F, $6F, $40 // vmovdqa ymm5, [rdi+40h]
 
