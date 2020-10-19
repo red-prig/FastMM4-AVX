@@ -17058,7 +17058,7 @@ var
 {$endif}
 begin
   {$ifdef fpc}
-   FillChar(NewMemoryManager, SizeOf(NewMemoryManager), 0); // prevents potential UB on FPC
+   FillChar(NewMemoryManager, SizeOf(NewMemoryManager), 0); // prevents potential undefined behavior on FPC caused by uninitialized data block
   {$endif}
   if not FastMMIsInstalled then
   begin
