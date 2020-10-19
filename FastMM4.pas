@@ -15924,6 +15924,20 @@ begin
   Result.TotalFree := Result.FreeSmall + Result.FreeBig + Result.Unused;
 end;
 
+{$ifdef fpc}
+function FastGetFPCHeapStatus:TFPCHeapStatus; //support get TFPCHeapStatus
+Var
+ HS:THeapStatus;
+begin
+ HS:=FastGetHeapStatus;
+ Result.MaxHeapSize :=HS.TotalAddrSpace;
+ Result.MaxHeapUsed :=HS.TotalAllocated;
+ Result.CurrHeapSize:=HS.TotalAddrSpace;
+ Result.CurrHeapUsed:=HS.TotalAllocated;
+ Result.CurrHeapFree:=HS.TotalFree;
+end;
+{$endif}
+
 {Frees all allocated memory. Does not support segmented large blocks (yet).}
 procedure FreeAllMemory;
 var
@@ -17034,6 +17048,9 @@ var
   LChar: AnsiChar;
 {$endif}
 begin
+  {$ifdef fpc}
+   FillChar(NewMemoryManager,SizeOf(NewMemoryManager),0); //prevents potential UB on FPC
+  {$endif}
   if not FastMMIsInstalled then
   begin
 {$ifdef FullDebugMode}
@@ -17116,6 +17133,9 @@ begin
       NewMemoryManager.GetMem := DebugGetMem;
       NewMemoryManager.FreeMem := DebugFreeMem;
       NewMemoryManager.ReallocMem := DebugReallocMem;
+{$endif}
+{$ifdef fpc}
+      NewMemoryManager.GetFPCHeapStatus := {$ifdef fpc64bit}@{$endif}FastGetFPCHeapStatus; //support get TFPCHeapStatus
 {$endif}
 {$ifdef BDS2006AndUp}
   {$ifndef FullDebugMode}
