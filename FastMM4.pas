@@ -16479,7 +16479,7 @@ begin
   HeapTotalAllocated := GetHeapStatus.TotalAllocated;
   {$ifdef FPC}
   {$if FPC_FULLVERSION> 30300}
-  if HeapTotalAllocated > 448 then
+  if HeapTotalAllocated > 600 then
   {$else}
   if HeapTotalAllocated > 300 then // allow up to 300 bytes to FreePascal until we figure out how to install our heap manager properly BEFORE any call
   {$endif}
